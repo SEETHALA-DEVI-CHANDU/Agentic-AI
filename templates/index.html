@@ -1,0 +1,1611 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sahayak AI</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --background-color: #FFFFFF; --surface-color: #FFFFFF; --text-color: #202124;
+            --secondary-text: #5F6368; --link-color: #1967d2; --accent-color: #4285F4;
+            --border-color: #dfe1e5; --input-bg: #FFFFFF; --shadow: 0 2px 10px rgba(0,0,0,0.1);
+            --hover-shadow: 0 4px 20px rgba(0,0,0,0.15); --sidebar-bg: #FFFFFF; --success-color: #34A853;
+            --warning-color: #FBBC04; --error-color: #EA4335;
+        }
+        [data-theme="dark"] {
+            --background-color: #202124; --surface-color: #303134; --text-color: #E8EAED;
+            --secondary-text: #BDC1C6; --link-color: #8AB4F8; --accent-color: #1A73E8;
+            --border-color: #5F6368; --input-bg: #303134; --shadow: 0 2px 10px rgba(0,0,0,0.3);
+            --hover-shadow: 0 4px 20px rgba(0,0,0,0.4); --sidebar-bg: #2D2D30;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: 'Roboto', sans-serif; 
+            background: var(--background-color); 
+            color: var(--text-color); 
+            transition: all 0.3s ease; 
+            min-height: 100vh; 
+            overflow-x: hidden;
+            position: relative;
+        }
+        
+        /* Animated Background */
+        .background-animation { 
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; overflow: hidden; 
+        }
+        .floating-element { 
+            position: absolute; opacity: 0.1; animation: float 20s infinite linear; 
+        }
+        .floating-element:nth-child(1) { top: 10%; left: 10%; animation-delay: 0s; }
+        .floating-element:nth-child(2) { top: 20%; right: 10%; animation-delay: -5s; }
+        .floating-element:nth-child(3) { bottom: 30%; left: 20%; animation-delay: -10s; }
+        .floating-element:nth-child(4) { bottom: 20%; right: 20%; animation-delay: -15s; }
+        @keyframes float { 
+            0% { transform: translateY(0px) rotate(0deg); } 
+            25% { transform: translateY(-20px) rotate(90deg); } 
+            50% { transform: translateY(0px) rotate(180deg); } 
+            75% { transform: translateY(-15px) rotate(270deg); } 
+            100% { transform: translateY(0px) rotate(360deg); } 
+        }
+        
+        /* Particle Animation */
+        .particle {
+            position: absolute; width: 4px; height: 4px; background: var(--accent-color);
+            border-radius: 50%; animation: particle-float 15s infinite linear; opacity: 0.3;
+        }
+        @keyframes particle-float {
+            0% { transform: translateY(100vh) translateX(0); }
+            100% { transform: translateY(-100px) translateX(100px); }
+        }
+        
+        /* --- Authentication UI --- */
+        .auth-container { 
+            min-height: 100vh; display: none; align-items: center; justify-content: center; 
+            padding: 100px 2rem 2rem; position: relative;
+        }
+        .auth-container.active { display: flex; animation: fadeIn 0.5s ease; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .auth-card { 
+            background: var(--surface-color); border-radius: 16px; box-shadow: var(--hover-shadow); 
+            padding: 3rem; width: 100%; max-width: 450px; position: relative; overflow: hidden; 
+            transition: all 0.3s ease;
+        }
+        .auth-card:hover { 
+            box-shadow: var(--hover-shadow); 
+            transform: translateY(-5px); 
+        }
+        .auth-card::before { 
+            content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px; 
+            background: linear-gradient(90deg, var(--accent-color), #34A853, #FBBC04, #EA4335); 
+            border-radius: 16px 16px 0 0;
+        }
+        .auth-title { text-align: center; font-size: 2rem; font-weight: 500; margin-bottom: 0.5rem; }
+        .auth-subtitle { text-align: center; color: var(--secondary-text); margin-bottom: 2rem; font-size: 0.9rem; }
+        .auth-form { display: none; }
+        .auth-form.active { display: block; animation: fadeInUp 0.5s ease; }
+        @keyframes fadeInUp { 
+            from { opacity: 0; transform: translateY(30px); } 
+            to { opacity: 1; transform: translateY(0); } 
+        }
+        .form-group { margin-bottom: 1.5rem; position: relative; }
+        .form-row { display: flex; gap: 1rem; }
+        .form-row .form-group { flex: 1; }
+        .form-label { display: block; margin-bottom: 0.5rem; font-weight: 500; font-size: 0.9rem; }
+        .password-container { position: relative; }
+        .password-toggle { 
+            position: absolute; top: 50%; right: 1rem; transform: translateY(-50%); 
+            background: none; border: none; color: var(--secondary-text); cursor: pointer; 
+            font-size: 1.1rem; transition: color 0.3s ease;
+        }
+        .password-toggle:hover { color: var(--accent-color); }
+        .form-input { 
+            width: 100%; padding: 1rem; border: 2px solid var(--border-color); border-radius: 8px; 
+            background: var(--input-bg); color: var(--text-color); font-size: 1rem; 
+            transition: all 0.3s ease; font-family: 'Roboto', sans-serif;
+        }
+        .form-input:focus { 
+            outline: none; border-color: var(--accent-color); 
+            box-shadow: 0 0 0 3px rgba(66, 133, 244, 0.1); 
+            transform: translateY(-2px); 
+        }
+        .form-input::placeholder { color: var(--secondary-text); }
+        .validation-message { font-size: 0.8rem; margin-top: 0.5rem; min-height: 1em; }
+        .validation-message.error { color: var(--error-color); }
+        .validation-message.success { color: var(--success-color); }
+        .validation-message.warning { color: var(--warning-color); }
+        .password-strength { 
+            margin-top: 0.5rem; padding: 0.5rem; border-radius: 4px; 
+            font-size: 0.8rem; transition: all 0.3s ease; display: none;
+        }
+        .strength-weak { background: rgba(234, 67, 53, 0.1); color: #EA4335; }
+        .strength-medium { background: rgba(251, 188, 4, 0.1); color: #FBBC04; }
+        .strength-strong { background: rgba(52, 168, 83, 0.1); color: #34A853; }
+        .api-error-message { 
+            color: var(--error-color); text-align: center; min-height: 1.2em; 
+            margin-top: 1rem; margin-bottom: 1rem; display: none; animation: shake 0.5s ease;
+        }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+        .auth-link { text-align: center; margin-top: 1.5rem; font-size: 0.9rem; }
+        .auth-link a { 
+            color: var(--link-color); text-decoration: none; font-weight: 500; 
+            cursor: pointer; transition: all 0.3s ease;
+        }
+        .auth-link a:hover { text-decoration: underline; color: var(--accent-color); }
+
+        /* --- Main App and Modal UI --- */
+        .app-container { display: none; }
+        .modal-overlay { 
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+            background: rgba(0,0,0,0.6); z-index: 2000; display: none; align-items: center; justify-content: center; 
+        }
+        .modal-overlay.show { display: flex; animation: fadeIn 0.3s ease; }
+        .modal-content { 
+            background: var(--surface-color); padding: 2rem; border-radius: 16px; 
+            width: 90%; max-width: 500px; box-shadow: var(--hover-shadow); position: relative; 
+        }
+        .modal-close { 
+            position: absolute; top: 1rem; right: 1rem; background: none; border: none; 
+            font-size: 1.5rem; cursor: pointer; color: var(--secondary-text); 
+        }
+        .modal-title { margin-bottom: 1.5rem; font-size: 1.8rem; }
+        .detail-item { 
+            display: flex; justify-content: space-between; padding: 0.85rem 0; 
+            border-bottom: 1px solid var(--border-color); 
+        }
+        .detail-item:last-child { border-bottom: none; }
+        .detail-item span:first-child { font-weight: 500; }
+        .detail-item span:last-child { color: var(--secondary-text); }
+        
+        /* --- Core App Styles --- */
+        .page { display: none; } 
+        .page.active { display: block; animation: fadeInUp 0.6s ease; } 
+        .header { 
+            background: var(--surface-color); border-bottom: 1px solid var(--border-color); 
+            padding: 1rem 2rem; position: sticky; top: 0; z-index: 1000; box-shadow: var(--shadow); 
+        } 
+        .header-content { 
+            display: flex; justify-content: space-between; align-items: center; 
+            max-width: 1200px; margin: 0 auto; 
+        } 
+        .header-left, .header-right { display: flex; align-items: center; gap: 1rem; } 
+        .hamburger { 
+            background: none; border: none; font-size: 1.5rem; color: var(--text-color); 
+            cursor: pointer; padding: 0.5rem; border-radius: 8px; 
+        } 
+        .header .logo { 
+            font-size: 1.5rem; font-weight: 500; color: var(--accent-color); 
+            display:flex; align-items:center; gap:0.5rem; 
+        } 
+        .header .logo i { 
+            font-size: 1.8rem; background: linear-gradient(45deg, var(--accent-color), #34A853); 
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent; 
+        } 
+        .theme-switcher { 
+            background: var(--surface-color); border: 2px solid var(--border-color); 
+            border-radius: 50px; padding: 0.5rem; cursor: pointer; display: flex; 
+            align-items: center; width: 70px; height: 35px; position: relative; 
+            transition: all 0.3s ease;
+        } 
+        .theme-switcher:hover { 
+            border-color: var(--accent-color); transform: scale(1.05); 
+        }
+        .theme-toggle { 
+            position: absolute; top: 2px; left: 2px; width: 29px; height: 29px; 
+            background: var(--accent-color); border-radius: 50%; transition: all 0.3s ease; 
+            display: flex; align-items: center; justify-content: center; color: white; font-size: 0.8rem; 
+        } 
+        [data-theme="dark"] .theme-toggle { transform: translateX(33px); } 
+        .profile-menu { position: relative; } 
+        .profile-pic { 
+            width: 40px; height: 40px; border-radius: 50%; 
+            background: linear-gradient(45deg, var(--accent-color), #34A853); 
+            display: flex; align-items: center; justify-content: center; color: white; cursor: pointer; 
+        } 
+        .profile-dropdown { 
+            position: absolute; top: 50px; right: 0; background: var(--surface-color); 
+            border: 1px solid var(--border-color); border-radius: 8px; box-shadow: var(--shadow); 
+            min-width: 200px; display: none; z-index: 1001; 
+        } 
+        .profile-dropdown.show { display: block; animation: fadeInDown 0.3s ease; } 
+        @keyframes fadeInDown { 
+            from { opacity: 0; transform: translateY(-10px); } 
+            to { opacity: 1; transform: translateY(0); } 
+        } 
+        .profile-item { 
+            padding: 0.75rem 1rem; cursor: pointer; border-bottom: 1px solid var(--border-color); 
+            display: flex; align-items: center; 
+        } 
+        .profile-item:last-child { border-bottom: none; } 
+        .profile-item:hover { background: var(--border-color); } 
+        .profile-item i { margin-right: 0.5rem; width: 16px; text-align: center; } 
+        .sidebar { 
+            position: fixed; top: 68px; left: -300px; width: 280px; height: calc(100vh - 68px); 
+            background: var(--sidebar-bg); border-right: 1px solid var(--border-color); 
+            box-shadow: var(--shadow); transition: left 0.3s ease; z-index: 999; overflow-y: auto; 
+        } 
+        .sidebar.show { left: 0; } 
+        .sidebar-overlay { 
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+            background: rgba(0, 0, 0, 0.5); z-index: 998; display: none; opacity: 0; 
+        } 
+        .sidebar-overlay.show { display: block; opacity: 1; } 
+        .sidebar-item { 
+            padding: 1rem 1.5rem; cursor: pointer; border-bottom: 1px solid var(--border-color); 
+            display: flex; align-items: center; gap: 1rem; color: var(--text-color); text-decoration: none; 
+        } 
+        .sidebar-item.active { 
+            background: var(--accent-color); color: white; border-left: 4px solid #1557b0; 
+        } 
+        .btn-primary { 
+            background: var(--accent-color); color: white; border: none; padding: 1rem; 
+            border-radius: 8px; font-size: 1rem; font-weight: 500; cursor: pointer; 
+            transition: all 0.3s ease; display: flex; align-items: center; gap: 0.5rem; 
+            justify-content: center; position: relative; overflow: hidden;
+        } 
+        .btn-primary:hover { 
+            background: #1557b0; transform: translateY(-2px); 
+            box-shadow: var(--hover-shadow); 
+        }
+        .btn-primary:active { transform: translateY(0); }
+        .btn-primary:disabled { background: var(--secondary-text); cursor: not-allowed; opacity: 0.7; }
+        .btn-primary::before {
+            content: ''; position: absolute; top: 50%; left: 50%; width: 0; height: 0;
+            background: rgba(255, 255, 255, 0.3); border-radius: 50%;
+            transition: all 0.6s ease; transform: translate(-50%, -50%);
+        }
+        .btn-primary:active::before { width: 300px; height: 300px; }
+        .loading { 
+            display: inline-block; width: 20px; height: 20px; border: 3px solid rgba(255,255,255,.3); 
+            border-radius: 50%; border-top-color: #fff; animation: spin 1s ease-in-out infinite; 
+        } 
+        @keyframes spin { to { transform: rotate(360deg); } } 
+        .main-content { padding: 2rem; min-height: calc(100vh - 150px); } 
+        .page-container { max-width: 1200px; margin: 0 auto; } 
+        .page-title { text-align: center; font-size: 2.5rem; font-weight: 500; margin-bottom: 1rem; } 
+        .page-subtitle { 
+            text-align: center; color: var(--secondary-text); margin-bottom: 3rem; font-size: 1.1rem; 
+        } 
+        .cards-grid { 
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); 
+            gap: 2rem; margin-bottom: 3rem; 
+        } 
+        .feature-card { 
+            background: var(--surface-color); border-radius: 16px; padding: 2rem; 
+            box-shadow: var(--shadow); transition: all 0.3s ease; border: 1px solid var(--border-color); 
+            position: relative; overflow: hidden; display: flex; flex-direction: column; 
+        } 
+        .feature-card::before { 
+            content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px; 
+            background: linear-gradient(90deg, var(--accent-color), #34A853, #FBBC04, #EA4335); 
+        } 
+        .card-icon { font-size: 3rem; margin-bottom: 1rem; display: block; } 
+        .card-title { font-size: 1.5rem; font-weight: 500; margin-bottom: 1rem; } 
+        .card-description { 
+            color: var(--secondary-text); line-height: 1.6; margin-bottom: 1.5rem; flex-grow: 1; 
+        } 
+        .card-button { 
+            background: var(--accent-color); color: white; border: none; padding: 0.75rem 1.5rem; 
+            border-radius: 8px; font-weight: 500; cursor: pointer; align-self: flex-start; 
+        } 
+        .form-container { 
+            background: var(--surface-color); border-radius: 16px; padding: 2rem; 
+            box-shadow: var(--shadow); margin-bottom: 2rem; 
+        } 
+        .footer { 
+            background: var(--surface-color); border-top: 1px solid var(--border-color); 
+            padding: 3rem 2rem 2rem; 
+        } 
+        .footer-content { max-width: 1200px; margin: 0 auto; text-align: center; } 
+        .footer-mission { font-size: 1.2rem; font-weight: 500; margin-bottom: 1rem; } 
+        .footer-description { 
+            color: var(--secondary-text); line-height: 1.6; margin-bottom: 2rem; 
+            max-width: 800px; margin: 0 auto 2rem auto; 
+        } 
+        .footer-bottom { 
+            border-top: 1px solid var(--border-color); padding-top: 1.5rem; 
+            margin-top: 1.5rem; color: var(--secondary-text); font-size: 0.9rem; 
+        } 
+        .response-area { 
+            white-space: pre-wrap; line-height: 1.6; background: var(--input-bg); 
+            padding: 1.5rem; border-radius: 8px; border: 1px solid var(--border-color); 
+            min-height: 150px;
+        }
+
+        /* --- CHAT UI STYLES --- */
+        .chat-container {
+            display: flex;
+            flex-direction: column;
+            height: 70vh;
+            background: var(--surface-color);
+            border-radius: 16px;
+            box-shadow: var(--shadow);
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+        }
+
+        .chat-header {
+            background: linear-gradient(135deg, var(--accent-color), #34A853);
+            color: white;
+            padding: 1.5rem;
+            text-align: center;
+            position: relative;
+        }
+
+        .chat-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="20" cy="20" r="2" fill="rgba(255,255,255,0.1)"/><circle cx="80" cy="40" r="1" fill="rgba(255,255,255,0.1)"/><circle cx="40" cy="70" r="1.5" fill="rgba(255,255,255,0.1)"/></svg>');
+            opacity: 0.3;
+        }
+
+        .chat-header h3 {
+            font-size: 1.3rem;
+            font-weight: 500;
+            margin: 0;
+            position: relative;
+            z-index: 1;
+        }
+
+        .chat-header p {
+            margin: 0.5rem 0 0 0;
+            opacity: 0.9;
+            font-size: 0.9rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1rem;
+            background: var(--background-color);
+            position: relative;
+        }
+
+        .chat-messages::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .chat-messages::-webkit-scrollbar-track {
+            background: var(--border-color);
+            border-radius: 3px;
+        }
+
+        .chat-messages::-webkit-scrollbar-thumb {
+            background: var(--secondary-text);
+            border-radius: 3px;
+        }
+
+        .chat-messages::-webkit-scrollbar-thumb:hover {
+            background: var(--text-color);
+        }
+
+        .message {
+            margin-bottom: 1rem;
+            animation: messageSlideIn 0.3s ease;
+        }
+
+        @keyframes messageSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .message.bot {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.75rem;
+        }
+
+        .message.user {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.75rem;
+            flex-direction: row-reverse;
+        }
+
+        .message-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            flex-shrink: 0;
+            margin-top: 0.2rem;
+        }
+
+        .message.bot .message-avatar {
+            background: linear-gradient(135deg, var(--accent-color), #34A853);
+            color: white;
+        }
+
+        .message.user .message-avatar {
+            background: linear-gradient(135deg, #FF6B6B, #FF8E53);
+            color: white;
+        }
+
+        .message-content {
+            max-width: 70%;
+            padding: 1rem 1.25rem;
+            border-radius: 18px;
+            line-height: 1.5;
+            word-wrap: break-word;
+            position: relative;
+        }
+
+        .message.bot .message-content {
+            background: var(--surface-color);
+            border: 1px solid var(--border-color);
+            border-bottom-left-radius: 6px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .message.user .message-content {
+            background: var(--accent-color);
+            color: white;
+            border-bottom-right-radius: 6px;
+            box-shadow: 0 2px 8px rgba(66, 133, 244, 0.3);
+        }
+
+        .message-time {
+            font-size: 0.75rem;
+            color: var(--secondary-text);
+            margin-top: 0.25rem;
+            opacity: 0.7;
+        }
+
+        .message.user .message-time {
+            color: rgba(255, 255, 255, 0.8);
+            text-align: right;
+        }
+
+        .typing-indicator {
+            display: none;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+        }
+
+        .typing-indicator.show {
+            display: flex;
+            animation: messageSlideIn 0.3s ease;
+        }
+
+        .typing-dots {
+            display: flex;
+            gap: 0.25rem;
+            padding: 1rem 1.25rem;
+            background: var(--surface-color);
+            border: 1px solid var(--border-color);
+            border-radius: 18px;
+            border-bottom-left-radius: 6px;
+        }
+
+        .typing-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--secondary-text);
+            animation: typingPulse 1.4s infinite ease-in-out;
+        }
+
+        .typing-dot:nth-child(1) { animation-delay: -0.32s; }
+        .typing-dot:nth-child(2) { animation-delay: -0.16s; }
+
+        @keyframes typingPulse {
+            0%, 80%, 100% {
+                transform: scale(0.8);
+                opacity: 0.5;
+            }
+            40% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .chat-input-container {
+            padding: 1rem;
+            background: var(--surface-color);
+            border-top: 1px solid var(--border-color);
+        }
+
+        .chat-input-wrapper {
+            display: flex;
+            gap: 0.75rem;
+            align-items: flex-end;
+        }
+
+        .grade-selector {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .grade-selector label {
+            font-size: 0.8rem;
+            font-weight: 500;
+            color: var(--secondary-text);
+        }
+
+        .grade-selector select {
+            padding: 0.5rem;
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            background: var(--input-bg);
+            color: var(--text-color);
+            font-size: 0.9rem;
+            min-width: 80px;
+            transition: all 0.3s ease;
+        }
+
+        .grade-selector select:focus {
+            outline: none;
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 3px rgba(66, 133, 244, 0.1);
+        }
+
+        .chat-input-field {
+            position: relative;
+            flex: 1;
+        }
+
+        .chat-input {
+            width: 100%;
+            padding: 1rem 3rem 1rem 1rem;
+            border: 2px solid var(--border-color);
+            border-radius: 25px;
+            background: var(--input-bg);
+            color: var(--text-color);
+            font-size: 1rem;
+            font-family: 'Roboto', sans-serif;
+            resize: none;
+            min-height: 50px;
+            max-height: 120px;
+            transition: all 0.3s ease;
+            outline: none;
+        }
+
+        .chat-input:focus {
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 3px rgba(66, 133, 244, 0.1);
+            transform: translateY(-1px);
+        }
+
+        .chat-input::placeholder {
+            color: var(--secondary-text);
+        }
+
+        .send-button {
+            position: absolute;
+            right: 0.5rem;
+            bottom: 0.5rem;
+            width: 40px;
+            height: 40px;
+            background: var(--accent-color);
+            border: none;
+            border-radius: 50%;
+            color: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(66, 133, 244, 0.3);
+        }
+
+        .send-button:hover {
+            background: #1557b0;
+            transform: scale(1.05);
+            box-shadow: 0 4px 12px rgba(66, 133, 244, 0.4);
+        }
+
+        .send-button:active {
+            transform: scale(0.95);
+        }
+
+        .send-button:disabled {
+            background: var(--secondary-text);
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .welcome-message {
+            text-align: center;
+            padding: 2rem;
+            color: var(--secondary-text);
+            font-style: italic;
+        }
+
+        .welcome-message i {
+            font-size: 3rem;
+            color: var(--accent-color);
+            margin-bottom: 1rem;
+            display: block;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .header { padding: 1rem; }
+            .auth-card { margin: 1rem; padding: 2rem; }
+            .form-row { flex-direction: column; gap: 0; }
+            .auth-container { padding: 80px 1rem 1rem; }
+            
+            .chat-container {
+                height: 60vh;
+            }
+            
+            .message-content {
+                max-width: 85%;
+            }
+            
+            .chat-input-wrapper {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            
+            .grade-selector {
+                align-self: flex-start;
+            }
+        }
+
+        /* Interactive Effects */
+        .form-input:focus { transform: translateY(-2px); }
+        .form-group:focus-within { transform: scale(1.02); }
+    </style>
+</head>
+<body data-theme="light">
+    <div class="background-animation">
+        <div class="floating-element"><i class="fas fa-book" style="font-size: 3rem;"></i></div>
+        <div class="floating-element"><i class="fas fa-chalkboard-teacher" style="font-size: 3rem;"></i></div>
+        <div class="floating-element"><i class="fas fa-graduation-cap" style="font-size: 3rem;"></i></div>
+        <div class="floating-element"><i class="fas fa-users" style="font-size: 3rem;"></i></div>
+        <div class="particle" style="left: 10%; animation-delay: 0s;"></div>
+        <div class="particle" style="left: 20%; animation-delay: 2s;"></div>
+        <div class="particle" style="left: 30%; animation-delay: 4s;"></div>
+        <div class="particle" style="left: 40%; animation-delay: 6s;"></div>
+        <div class="particle" style="left: 50%; animation-delay: 8s;"></div>
+        <div class="particle" style="left: 60%; animation-delay: 10s;"></div>
+        <div class="particle" style="left: 70%; animation-delay: 12s;"></div>
+        <div class="particle" style="left: 80%; animation-delay: 14s;"></div>
+        <div class="particle" style="left: 90%; animation-delay: 16s;"></div>
+    </div>
+
+    <div class="auth-container" id="auth-container">
+        <div style="position: absolute; top: 2rem; right: 2rem;">
+            <div class="theme-switcher" id="auth-theme-switcher">
+                <div class="theme-toggle">
+                    <i class="fas fa-sun"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="auth-card">
+            <form id="login-form" class="auth-form">
+                <h1 class="auth-title">Welcome Back</h1>
+                <p class="auth-subtitle">Sign in to continue empowering education</p>
+                <div class="form-group">
+                    <label for="login-email" class="form-label">Email</label>
+                    <input type="email" id="login-email" name="email" class="form-input" placeholder="Enter your email" required value="teacher.priya@example.com">
+                </div>
+                <div class="form-group">
+                    <label for="login-password" class="form-label">Password</label>
+                    <div class="password-container">
+                        <input type="password" id="login-password" name="password" class="form-input" placeholder="Enter your password" required value="password123">
+                        <button type="button" class="password-toggle" onclick="togglePasswordVisibility('login-password')">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+                </div>
+                <p class="api-error-message" id="login-error"></p>
+                <button type="submit" class="btn-primary" style="width:100%;">
+                    <span class="button-text">Sign In</span>
+                </button>
+                <p class="auth-link">Don't have an account? <a id="show-signup-link">Sign up here</a></p>
+            </form>
+
+            <form id="signup-form" class="auth-form">
+                <h1 class="auth-title">Join Sahayak AI</h1>
+                <p class="auth-subtitle">Create your account to transform education</p>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="signup-firstname" class="form-label">First Name</label>
+                        <input type="text" id="signup-firstname" class="form-input" placeholder="First name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="signup-lastname" class="form-label">Last Name</label>
+                        <input type="text" id="signup-lastname" class="form-input" placeholder="Last name" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="signup-middlename" class="form-label">Middle Name (Optional)</label>
+                    <input type="text" id="signup-middlename" class="form-input" placeholder="Middle name">
+                </div>
+                <div class="form-group">
+                    <label for="signup-preferredname" class="form-label">Preferred Name (Optional)</label>
+                    <input type="text" id="signup-preferredname" class="form-input" placeholder="How you'd like to be called">
+                </div>
+                <div class="form-group">
+                    <label for="signup-school" class="form-label">School Name</label>
+                    <input type="text" id="signup-school" name="school" class="form-input" placeholder="Enter your school name" required>
+                </div>
+                <div class="form-group">
+                    <label for="signup-email" class="form-label">Email Address</label>
+                    <input type="email" id="signup-email" name="email" class="form-input" placeholder="Enter your email address" required>
+                    <div id="email-validation-msg" class="validation-message"></div>
+                </div>
+                <div class="form-group">
+                    <label for="signup-password" class="form-label">Password</label>
+                    <div class="password-container">
+                        <input type="password" id="signup-password" name="password" class="form-input" placeholder="Create a strong password" required minlength="8">
+                        <button type="button" class="password-toggle" onclick="togglePasswordVisibility('signup-password')">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+                    <div class="password-strength" id="password-strength"></div>
+                </div>
+                <div class="form-group">
+                    <label for="signup-confirm-password" class="form-label">Confirm Password</label>
+                    <div class="password-container">
+                        <input type="password" id="signup-confirm-password" class="form-input" placeholder="Confirm your password" required>
+                        <button type="button" class="password-toggle" onclick="togglePasswordVisibility('signup-confirm-password')">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+                    <div id="confirm-password-error" class="validation-message"></div>
+                </div>
+                <p class="api-error-message" id="signup-error"></p>
+                <button type="submit" class="btn-primary" style="width:100%;">
+                    <span class="button-text">Create Account</span>
+                </button>
+                <p class="auth-link">Already have an account? <a id="show-login-link">Sign in here</a></p>
+            </form>
+        </div>
+    </div>
+    
+    <div class="app-container" id="app-container"></div>
+    
+    <div class="modal-overlay" id="user-details-modal">
+        <div class="modal-content">
+            <button class="modal-close" id="modal-close-btn">&times;</button>
+            <h2 class="modal-title">User Profile</h2>
+            <div id="user-details-content"></div>
+        </div>
+    </div>
+
+    <template id="app-template">
+        <header class="header">
+            <div class="header-content">
+                <div class="header-left">
+                    <button class="hamburger" id="hamburger"><i class="fas fa-bars"></i></button>
+                    <div class="logo"><i class="fas fa-robot"></i> Sahayak AI</div>
+                </div>
+                <div class="header-right">
+                    <div class="theme-switcher" id="theme-switcher">
+                        <div class="theme-toggle"><i class="fas fa-sun"></i></div>
+                    </div>
+                    <div class="profile-menu">
+                        <div class="profile-pic" id="profile-pic"><i class="fas fa-user"></i></div>
+                        <div class="profile-dropdown" id="profile-dropdown">
+                            <div class="profile-item" id="user-details-btn"><i class="fas fa-user-circle"></i><span>User Details</span></div>
+                            <div class="profile-item" id="logout-btn"><i class="fas fa-sign-out-alt"></i><span>Logout</span></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+        <div class="sidebar-overlay" id="sidebar-overlay"></div>
+        <nav class="sidebar" id="sidebar">
+            <a href="#" class="sidebar-item active" data-page="home"><i class="fas fa-home"></i><span>Home</span></a>
+            <a href="#" class="sidebar-item" data-page="practice"><i class="fas fa-clipboard-list"></i><span>Page to Practice</span></a>
+            <a href="#" class="sidebar-item" data-page="ask-learn"><i class="fas fa-question-circle"></i><span>Ask & Learn</span></a>
+            <a href="#" class="sidebar-item" data-page="visual-learning"><i class="fas fa-image"></i><span>Visual Learning</span></a>
+            <a href="#" class="sidebar-item" data-page="audio-questioning"><i class="fas fa-microphone"></i><span>Audio Questioning</span></a>
+            <a href="#" class="sidebar-item" data-page="learning-games"><i class="fas fa-gamepad"></i><span>Learning Games</span></a>
+            <a href="#" class="sidebar-item" data-page="plan-week"><i class="fas fa-calendar-alt"></i><span>Plan My Week</span></a>
+        </nav>
+        <main class="main-content">
+            <div class="page-container">
+                <div class="page active" id="home">
+                    <h1 class="page-title" id="main-header">Sahayak AI</h1>
+                    <p class="page-subtitle" id="welcome-message">Empowering Teachers in Multi-Grade Classrooms</p>
+                    <div class="cards-grid">
+                        <div class="feature-card">
+                            <i class="fas fa-clipboard-list card-icon" style="color: #4285F4;"></i>
+                            <h3 class="card-title">Page to Practice</h3>
+                            <p class="card-description">Upload textbook images and generate differentiated worksheets tailored to different grade levels.</p>
+                            <button class="card-button" data-page="practice">Get Started</button>
+                        </div>
+                        <div class="feature-card">
+                            <i class="fas fa-question-circle card-icon" style="color: #34A853;"></i>
+                            <h3 class="card-title">Ask & Learn</h3>
+                            <p class="card-description">Get instant, accurate explanations for complex student questions in your local language.</p>
+                            <button class="card-button" data-page="ask-learn">Ask Now</button>
+                        </div>
+                        <div class="feature-card">
+                            <i class="fas fa-image card-icon" style="color: #FBBC04;"></i>
+                            <h3 class="card-title">Visual Learning</h3>
+                            <p class="card-description">Generate simple line drawings and charts that can be easily replicated on a blackboard.</p>
+                            <button class="card-button" data-page="visual-learning">Create Visuals</button>
+                        </div>
+                        <div class="feature-card">
+                            <i class="fas fa-microphone card-icon" style="color: #EA4335;"></i>
+                            <h3 class="card-title">Audio Questioning</h3>
+                            <p class="card-description">Speak your questions and receive detailed explanations, perfect for quick clarifications.</p>
+                            <button class="card-button" data-page="audio-questioning">Use Voice</button>
+                        </div>
+                        <div class="feature-card">
+                            <i class="fas fa-gamepad card-icon" style="color: #9C27B0;"></i>
+                            <h3 class="card-title">Learning Games</h3>
+                            <p class="card-description">Generate educational games on-the-fly to make learning fun and engaging for students.</p>
+                            <button class="card-button" data-page="learning-games">Play & Learn</button>
+                        </div>
+                        <div class="feature-card">
+                            <i class="fas fa-calendar-alt card-icon" style="color: #1976D2;"></i>
+                            <h3 class="card-title">Plan My Week</h3>
+                            <p class="card-description">Use AI-powered weekly lesson planners to structure activities and save valuable time.</p>
+                            <button class="card-button" data-page="plan-week">Plan Now</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="page" id="practice">
+                    <h1 class="page-title">Page to Practice</h1>
+                    <p class="page-subtitle">Generate custom worksheets from textbook pages.</p>
+                    <form id="practice-form" class="form-container">
+                        <div class="form-group">
+                            <label for="practice-level" class="form-label">Difficulty Level</label>
+                            <select id="practice-level" class="form-input">
+                                <option>Basic</option>
+                                <option>Intermediate</option>
+                                <option>Advanced</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Upload Textbook Page</label>
+                            <input type="file" id="practice-image" class="form-input" accept="image/*" required>
+                        </div>
+                        <button type="submit" class="btn-primary">
+                            <i class="fas fa-cogs"></i><span class="button-text"> Generate Worksheet</span>
+                        </button>
+                    </form>
+                    <div class="response-area" id="practice-response">Your generated worksheet will appear here.</div>
+                </div>
+                <div class="page" id="ask-learn">
+                    <h1 class="page-title">Ask & Learn</h1>
+                    <p class="page-subtitle">Your instant knowledge base.</p>
+                    
+                    <div class="chat-container">
+                        <div class="chat-header">
+                            <h3><i class="fas fa-robot"></i> Sahayak AI Assistant</h3>
+                            <p>Ask me anything about your subjects - I'm here to help!</p>
+                        </div>
+                        
+                        <div class="chat-messages" id="chat-messages">
+                            <div class="welcome-message">
+                                <i class="fas fa-graduation-cap"></i>
+                                <p><strong>Welcome! How can I help you today?</strong></p>
+                                <p>I can help you with questions about any subject, explain complex concepts, provide examples, and assist with your teaching needs.</p>
+                            </div>
+                        </div>
+                        
+                        <div class="typing-indicator" id="typing-indicator">
+                            <div class="message-avatar">
+                                <i class="fas fa-robot"></i>
+                            </div>
+                            <div class="typing-dots">
+                                <div class="typing-dot"></div>
+                                <div class="typing-dot"></div>
+                                <div class="typing-dot"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="chat-input-container">
+                            <form id="chat-form" class="chat-input-wrapper">
+                                <div class="grade-selector">
+                                    <label for="chat-grade">Grade:</label>
+                                    <select id="chat-grade" required>
+                                        <option value="1">1</option>
+                                        <option value="2">2</option>
+                                        <option value="3">3</option>
+                                        <option value="4">4</option>
+                                        <option value="5" selected>5</option>
+                                        <option value="6">6</option>
+                                        <option value="7">7</option>
+                                        <option value="8">8</option>
+                                        <option value="9">9</option>
+                                        <option value="10">10</option>
+                                        <option value="11">11</option>
+                                        <option value="12">12</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="chat-input-field">
+                                    <textarea 
+                                        id="chat-input" 
+                                        class="chat-input" 
+                                        placeholder="Type your question here..."
+                                        rows="1"
+                                        required></textarea>
+                                    <button type="submit" class="send-button" id="send-button">
+                                        <i class="fas fa-paper-plane"></i>
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                <div class="page" id="visual-learning">
+                    <h1 class="page-title">Visual Learning</h1>
+                    <p class="page-subtitle">Generate simple visuals from text.</p>
+                    <form id="visual-form" class="form-container">
+                        <div class="form-group">
+                            <label for="visual-prompt" class="form-label">Describe the visual you want</label>
+                            <textarea id="visual-prompt" class="form-input" rows="4" 
+                                      placeholder="e.g., Draw a simple diagram showing the water cycle" required></textarea>
+                        </div>
+                        <button type="submit" class="btn-primary">
+                            <i class="fas fa-lightbulb"></i><span class="button-text"> Generate Visual</span>
+                        </button>
+                    </form>
+                    <div class="response-area" id="visual-response">Your SVG image will appear here.</div>
+                </div>
+                <div class="page" id="audio-questioning">
+                    <h1 class="page-title"><i class="fas fa-microphone-alt"></i> Voice-based Q&A</h1>
+                    <p class="page-subtitle">Click the button, ask a question, and get an instant answer.</p>
+                    <div class="form-container" style="text-align: center;">
+                        <button id="audio-record-btn" class="btn-primary" style="width: 250px; height: 50px; font-size: 1.1rem;">
+                            <i class="fas fa-microphone"></i><span class="button-text"> Start Recording</span>
+                        </button>
+                        <p id="audio-status" class="page-subtitle" style="margin-top: 1.5rem; margin-bottom: 0;">Click to start recording your question.</p>
+                    </div>
+                    <div class="response-area" id="audio-response-area" style="margin-top: 2rem;">The answer will appear here.</div>
+                </div>
+                <div class="page" id="learning-games">
+                    <h1 class="page-title">Learning Games</h1>
+                    <p class="page-subtitle">Interactive games for students.</p>
+                    <div class="form-container">
+                        <p>This feature is under development. Coming soon with exciting educational games!</p>
+                    </div>
+                </div>
+                <div class="page" id="plan-week">
+                    <h1 class="page-title">Plan My Week</h1>
+                    <p class="page-subtitle">AI-powered weekly lesson planner.</p>
+                    <form id="plan-week-form" class="form-container">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="plan-grade" class="form-label">Grade</label>
+                                <select id="plan-grade" class="form-input" required>
+                                    <option>1</option> <option>2</option> <option>3</option>
+                                    <option>4</option> <option>5</option> <option>6</option>
+                                    <option>7</option> <option>8</option> <option>9</option>
+                                    <option>10</option> <option>11</option> <option>12</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="plan-subject" class="form-label">Subject</label>
+                                <input type="text" id="plan-subject" class="form-input" placeholder="e.g., Science, Mathematics" required>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="plan-chapter" class="form-label">Chapter Name</label>
+                            <input type="text" id="plan-chapter" class="form-input" placeholder="e.g., The Solar System" required>
+                        </div>
+                        <button type="submit" class="btn-primary">
+                            <i class="fas fa-calendar-check"></i><span class="button-text"> Generate Plan</span>
+                        </button>
+                    </form>
+                    <div class="response-area" id="plan-week-response">Your generated lesson plan will appear here.</div>
+                </div>
+            </div>
+        </main>
+        <footer class="footer">
+            <div class="footer-content">
+                <p class="footer-mission">Our Mission: Empowering Teachers, Amplifying Impact</p>
+                <p class="footer-description">Sahayak AI is dedicated to supporting teachers in multi-grade, under-resourced classrooms by providing versatile AI tools for content creation and differentiation.</p>
+                <div class="footer-bottom">&copy; 2025 Sahayak AI. A Google AI Powered Project.</div>
+            </div>
+        </footer>
+    </template>
+    
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const authContainer = document.getElementById('auth-container');
+        const appContainer = document.getElementById('app-container');
+        const loginForm = document.getElementById('login-form');
+        const signupForm = document.getElementById('signup-form');
+        const showLoginLink = document.getElementById('show-login-link');
+        const showSignupLink = document.getElementById('show-signup-link');
+        const authThemeSwitcher = document.getElementById('auth-theme-switcher');
+        const body = document.body;
+        
+        // --- THEME & INITIALIZATION ---
+        const updateAuthThemeIcon = (theme) => {
+             const icon = authThemeSwitcher.querySelector('i');
+             icon.className = theme === 'dark' ? 'fas fa-moon' : 'fas fa-sun';
+        };
+        authThemeSwitcher.addEventListener('click', () => {
+            const newTheme = body.dataset.theme === 'dark' ? 'light' : 'dark';
+            body.dataset.theme = newTheme;
+            localStorage.setItem('sahayak-theme', newTheme);
+            updateAuthThemeIcon(newTheme);
+        });
+        const savedTheme = localStorage.getItem('sahayak-theme') || 'light';
+        body.dataset.theme = savedTheme;
+        updateAuthThemeIcon(savedTheme);
+
+        // --- AUTH & APP ROUTING ---
+        const toggleForms = (show) => {
+            loginForm.classList.toggle('active', show === 'login');
+            signupForm.classList.toggle('active', show === 'signup');
+        };
+        showLoginLink.addEventListener('click', () => toggleForms('login'));
+        showSignupLink.addEventListener('click', () => toggleForms('signup'));
+        
+        const showApp = (user) => {
+            localStorage.setItem('sahayakUser', JSON.stringify(user));
+            authContainer.classList.remove('active');
+            appContainer.style.display = 'block';
+            // Only render the app template if it's not already there
+            if (!appContainer.innerHTML.trim()) {
+                appContainer.innerHTML = document.getElementById('app-template').innerHTML;
+                initializeAppUI(user);
+            }
+        };
+        const showLoginScreen = () => {
+            localStorage.removeItem('sahayakUser');
+            authContainer.classList.add('active');
+            appContainer.style.display = 'none';
+            appContainer.innerHTML = ''; // Clear the app content
+            toggleForms('login');
+        };
+        
+        // Check for saved user session on page load
+        const savedUser = localStorage.getItem('sahayakUser');
+        if (savedUser) {
+            try {
+                showApp(JSON.parse(savedUser));
+            } catch (e) {
+                showLoginScreen(); // If stored user data is corrupted
+            }
+        } else {
+            authContainer.classList.add('active');
+            toggleForms('login');
+        }
+
+        // --- GENERIC API REQUEST HANDLER ---
+        async function handleApiRequest(button, url, body) {
+            const buttonText = button.querySelector('.button-text');
+            const originalContent = buttonText ? buttonText.innerHTML : button.innerHTML;
+            button.disabled = true;
+            if (buttonText) {
+                buttonText.innerHTML = '<div class="loading"></div>';
+            } else {
+                button.innerHTML = '<div class="loading"></div>';
+            }
+            
+            const isFormData = body instanceof FormData;
+            const headers = isFormData ? {} : { 'Content-Type': 'application/json' };
+            const requestBody = isFormData ? body : JSON.stringify(body);
+
+            try {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: headers,
+                    body: requestBody
+                });
+                const data = await response.json();
+                if (!response.ok) {
+                    // Use a more specific error message if available from the backend
+                    throw new Error(data.detail || 'An unexpected error occurred.');
+                }
+                return data;
+            } finally {
+                button.disabled = false;
+                if (buttonText) {
+                    buttonText.innerHTML = originalContent;
+                } else {
+                    button.innerHTML = originalContent;
+                }
+            }
+        }
+        
+        // --- AUTHENTICATION HANDLERS (LIVE) ---
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const errorEl = document.getElementById('login-error');
+            const button = e.submitter;
+            const buttonText = button.querySelector('.button-text');
+            
+            errorEl.style.display = 'none';
+            button.disabled = true;
+            buttonText.innerHTML = '<div class="loading"></div>';
+
+            const payload = {
+                email: document.getElementById('login-email').value,
+                password: document.getElementById('login-password').value
+            };
+
+            try {
+                const response = await fetch('/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const data = await response.json();
+                if (!response.ok) {
+                    throw new Error(data.detail || 'Login failed.');
+                }
+                showApp(data.user_details);
+            } catch (error) {
+                errorEl.textContent = error.message;
+                errorEl.style.display = 'block';
+            } finally {
+                button.disabled = false;
+                buttonText.textContent = 'Sign In';
+            }
+        });
+
+        signupForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const errorEl = document.getElementById('signup-error');
+            const confirmErrorEl = document.getElementById('confirm-password-error');
+            const button = e.submitter;
+            const buttonText = button.querySelector('.button-text');
+
+            errorEl.style.display = 'none';
+            confirmErrorEl.textContent = '';
+            
+            const password = document.getElementById('signup-password').value;
+            const confirmPassword = document.getElementById('signup-confirm-password').value;
+
+            if (password !== confirmPassword) {
+                confirmErrorEl.textContent = "Passwords do not match.";
+                return;
+            }
+
+            button.disabled = true;
+            buttonText.innerHTML = '<div class="loading"></div>';
+
+            const firstName = document.getElementById('signup-firstname').value;
+            const middleName = document.getElementById('signup-middlename').value;
+            const lastName = document.getElementById('signup-lastname').value;
+            const fullName = `${firstName} ${middleName} ${lastName}`.replace(/\s+/g, ' ').trim();
+
+            const payload = {
+                name: fullName,
+                school: document.getElementById('signup-school').value,
+                email: document.getElementById('signup-email').value,
+                password: password,
+                 // preferred_name is captured but not sent, as it's not in the SignupRequest schema
+                preferred_name: document.getElementById('signup-preferredname').value || firstName 
+            };
+            
+            // The object to send to the backend must match the SignupRequest Pydantic model
+            const apiPayload = {
+                name: payload.name,
+                school: payload.school,
+                email: payload.email,
+                password: payload.password
+            };
+
+            try {
+                const response = await fetch('/signup', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(apiPayload)
+                });
+                const data = await response.json();
+                if (!response.ok) {
+                    throw new Error(data.detail || 'Signup failed.');
+                }
+                
+                alert('Account created successfully! Please sign in with your new credentials.');
+                toggleForms('login');
+                signupForm.reset();
+                document.getElementById('password-strength').style.display = 'none';
+
+            } catch (error) {
+                errorEl.textContent = error.message;
+                errorEl.style.display = 'block';
+            } finally {
+                button.disabled = false;
+                buttonText.textContent = 'Create Account';
+            }
+        });
+        
+        // --- UI UTILITIES ---
+        window.togglePasswordVisibility = (id) => {
+            const input = document.getElementById(id);
+            const icon = input.parentElement.querySelector('i');
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.className = 'fas fa-eye-slash';
+            } else {
+                input.type = 'password';
+                icon.className = 'fas fa-eye';
+            }
+        };
+
+        // --- CHAT FUNCTIONALITY ---
+        function formatTime() {
+            return new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        }
+
+        function addMessage(content, isUser = false) {
+            const chatMessages = document.getElementById('chat-messages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${isUser ? 'user' : 'bot'}`;
+            
+            messageDiv.innerHTML = `
+                <div class="message-avatar">
+                    <i class="fas ${isUser ? 'fa-user' : 'fa-robot'}"></i>
+                </div>
+                <div class="message-content">
+                    ${content}
+                    <div class="message-time">${formatTime()}</div>
+                </div>
+            `;
+            
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function showTypingIndicator() {
+            document.getElementById('typing-indicator').classList.add('show');
+            const chatMessages = document.getElementById('chat-messages');
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function hideTypingIndicator() {
+            document.getElementById('typing-indicator').classList.remove('show');
+        }
+
+        // Auto-resize textarea
+        function autoResizeTextarea(textarea) {
+            textarea.style.height = 'auto';
+            textarea.style.height = Math.min(textarea.scrollHeight, 120) + 'px';
+        }
+
+        // --- MAIN APP INITIALIZATION & EVENT LISTENERS ---
+        function initializeAppUI(user) {
+            // Use preferred name from local storage if available, otherwise name, otherwise fallback.
+            const preferredName = user.preferred_name || user.name.split(' ')[0];
+            document.getElementById('welcome-message').textContent = `Welcome back, ${preferredName || 'Teacher'}!`;
+            
+            const userDetailsBtn = document.getElementById('user-details-btn');
+            const logoutBtn = document.getElementById('logout-btn');
+            const userDetailsModal = document.getElementById('user-details-modal');
+            const themeSwitcher = document.getElementById('theme-switcher');
+            const hamburger = document.getElementById('hamburger');
+            const sidebar = document.getElementById('sidebar');
+            const sidebarOverlay = document.getElementById('sidebar-overlay');
+            const profilePic = document.getElementById('profile-pic');
+            
+            logoutBtn.addEventListener('click', showLoginScreen);
+            
+            userDetailsBtn.addEventListener('click', () => {
+                const currentUser = JSON.parse(localStorage.getItem('sahayakUser'));
+                const content = document.getElementById('user-details-content');
+                content.innerHTML = `
+                    <div class="detail-item"><span>Full Name</span><span>${currentUser.name || 'N/A'}</span></div>
+                    <div class="detail-item"><span>Preferred Name</span><span>${currentUser.preferred_name || currentUser.name.split(' ')[0] || 'N/A'}</span></div>
+                    <div class="detail-item"><span>Email</span><span>${currentUser.email || 'N/A'}</span></div>
+                    <div class="detail-item"><span>School</span><span>${currentUser.school || 'N/A'}</span></div>
+                `;
+                userDetailsModal.classList.add('show');
+            });
+            
+            userDetailsModal.querySelector('.modal-close').addEventListener('click', () => userDetailsModal.classList.remove('show'));
+            userDetailsModal.addEventListener('click', (e) => {
+                if (e.target === userDetailsModal) userDetailsModal.classList.remove('show');
+            });
+            
+            const updateThemeIcon = (theme) => {
+                const icon = themeSwitcher.querySelector('i');
+                icon.className = theme === 'dark' ? 'fas fa-moon' : 'fas fa-sun';
+            };
+            themeSwitcher.addEventListener('click', () => {
+                const newTheme = body.dataset.theme === 'dark' ? 'light' : 'dark';
+                body.dataset.theme = newTheme;
+                localStorage.setItem('sahayak-theme', newTheme);
+                updateThemeIcon(newTheme);
+            });
+            updateThemeIcon(localStorage.getItem('sahayak-theme') || 'light');
+            
+            hamburger.addEventListener('click', () => { 
+                sidebar.classList.toggle('show'); 
+                sidebarOverlay.classList.toggle('show'); 
+            });
+            sidebarOverlay.addEventListener('click', () => { 
+                sidebar.classList.remove('show'); 
+                sidebarOverlay.classList.remove('show'); 
+            });
+            
+            profilePic.addEventListener('click', (e) => {
+                e.stopPropagation();
+                document.getElementById('profile-dropdown').classList.toggle('show');
+            });
+            
+            document.addEventListener('click', () => {
+                document.getElementById('profile-dropdown').classList.remove('show');
+            });
+
+            document.querySelectorAll('[data-page]').forEach(el => {
+                el.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    window.showAppPage(el.dataset.page);
+                });
+            });
+
+            // --- CHAT FORM SUBMISSION ---
+            const chatForm = document.getElementById('chat-form');
+            const chatInput = document.getElementById('chat-input');
+            const sendButton = document.getElementById('send-button');
+            const chatGrade = document.getElementById('chat-grade');
+
+            // Auto-resize chat input
+            chatInput.addEventListener('input', () => autoResizeTextarea(chatInput));
+
+            // Handle Enter key (send message) and Shift+Enter (new line)
+            chatInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    chatForm.dispatchEvent(new Event('submit'));
+                }
+            });
+
+            chatForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                
+                const question = chatInput.value.trim();
+                const grade = parseInt(chatGrade.value);
+                const currentUser = JSON.parse(localStorage.getItem('sahayakUser'));
+                
+                if (!question) return;
+
+                // Disable form
+                sendButton.disabled = true;
+                chatInput.disabled = true;
+
+                // Add user message
+                addMessage(question, true);
+                
+                // Clear input and reset height
+                chatInput.value = '';
+                chatInput.style.height = 'auto';
+
+                // Show typing indicator
+                showTypingIndicator();
+
+                try {
+                    const payload = {
+                        question: question,
+                        grade: grade,
+                        user_id: currentUser.id || currentUser.email // Use ID if available, fallback to email
+                    };
+
+                    const response = await fetch('/chat', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+
+                    const data = await response.json();
+                    
+                    if (!response.ok) {
+                        throw new Error(data.detail || 'Failed to get response from AI assistant.');
+                    }
+
+                    // Hide typing indicator
+                    hideTypingIndicator();
+                    
+                    // Add bot response
+                    addMessage(data.response);
+
+                } catch (error) {
+                    hideTypingIndicator();
+                    addMessage(`❌ Sorry, I encountered an error: ${error.message}. Please try again.`);
+                } finally {
+                    // Re-enable form
+                    sendButton.disabled = false;
+                    chatInput.disabled = false;
+                    chatInput.focus();
+                }
+            });
+
+            // --- FEATURE FORM SUBMISSIONS (REAL API CALLS) ---
+            
+            document.getElementById('practice-form')?.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const responseArea = document.getElementById('practice-response');
+                const imageFile = document.getElementById('practice-image').files[0];
+                if (!imageFile) {
+                    responseArea.textContent = 'Please select an image file.';
+                    return;
+                }
+                const formData = new FormData();
+                formData.append('difficulty', document.getElementById('practice-level').value);
+                formData.append('image', imageFile);
+                
+                try {
+                    responseArea.textContent = 'Generating worksheet...';
+                    const data = await handleApiRequest(e.submitter, '/practice', formData);
+                    responseArea.textContent = data.response;
+                } catch (error) {
+                    responseArea.textContent = `Error: ${error.message}`;
+                }
+            });
+
+            document.getElementById('visual-form')?.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const responseArea = document.getElementById('visual-response');
+                const payload = {
+                    description: document.getElementById('visual-prompt').value
+                };
+                try {
+                    responseArea.innerHTML = 'Generating visual...';
+                    const data = await handleApiRequest(e.submitter, '/visual-learning', payload);
+                    responseArea.innerHTML = data.svg; // Render SVG directly
+                } catch (error) {
+                    responseArea.textContent = `Error: ${error.message}`;
+                }
+            });
+
+            document.getElementById('plan-week-form')?.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const responseArea = document.getElementById('plan-week-response');
+                const payload = {
+                    grade: parseInt(document.getElementById('plan-grade').value),
+                    subject: document.getElementById('plan-subject').value,
+                    chapter: document.getElementById('plan-chapter').value
+                };
+                try {
+                    responseArea.textContent = 'Generating lesson plan...';
+                    const data = await handleApiRequest(e.submitter, '/plan-week', payload);
+                    responseArea.textContent = data.response;
+                } catch (error) {
+                    responseArea.textContent = `Error: ${error.message}`;
+                }
+            });
+
+            document.getElementById('audio-form')?.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const responseArea = document.getElementById('audio-response');
+                const payload = {
+                    transcribed_text: document.getElementById('audio-prompt').value
+                };
+                try {
+                    responseArea.textContent = 'Getting answer...';
+                    const data = await handleApiRequest(e.submitter, '/audio-questioning', payload);
+                    responseArea.textContent = data.response;
+                } catch (error) {
+                    responseArea.textContent = `Error: ${error.message}`;
+                }
+            });
+
+            // --- REWRITTEN Audio Questioning Logic ---
+            const recordBtn = document.getElementById('audio-record-btn');
+            if (recordBtn) {
+                const statusEl = document.getElementById('audio-status');
+                const resultContainer = document.getElementById('audio-response-area');
+                const buttonText = recordBtn.querySelector('.button-text');
+                const buttonIcon = recordBtn.querySelector('i');
+                let mediaRecorder;
+                let audioChunks = [];
+
+                recordBtn.addEventListener('click', async () => {
+                    if (mediaRecorder && mediaRecorder.state === 'recording') {
+                        mediaRecorder.stop();
+                    } else {
+                        try {
+                            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                            mediaRecorder = new MediaRecorder(stream, { mimeType: 'audio/webm; codecs=opus' });
+                            audioChunks = [];
+
+                            mediaRecorder.ondataavailable = event => {
+                                audioChunks.push(event.data);
+                            };
+
+                            mediaRecorder.onstart = () => {
+                                buttonIcon.className = 'fas fa-stop-circle';
+                                buttonText.textContent = ' Stop Recording';
+                                statusEl.textContent = 'Recording... Speak your question now.';
+                                resultContainer.innerHTML = '';
+                                recordBtn.disabled = false;
+                            };
+
+                            mediaRecorder.onstop = async () => {
+                                recordBtn.disabled = true;
+                                buttonIcon.className = 'fas fa-microphone';
+                                buttonText.textContent = ' Start Recording';
+                                statusEl.textContent = 'Processing your audio...';
+
+                                const audioBlob = new Blob(audioChunks, { type: 'audio/webm; codecs=opus' });
+                                const formData = new FormData();
+                                formData.append('audio', audioBlob, 'recording.webm');
+
+                                resultContainer.innerHTML = '<p>Transcribing and getting answer...</p>';
+
+                                try {
+                                    // Using the new backend endpoint from the reference
+                                    const response = await fetch('agents/audio_agent', {
+                                        method: 'POST',
+                                        body: formData
+                                    });
+
+                                    const data = await response.json();
+
+                                    if (response.ok && data.success) {
+                                        let html = `
+                                            <h4 style="font-weight: 500;">I heard you say:</h4>
+                                            <p style="background: var(--input-bg); border-left: 3px solid var(--accent-color); padding: 1rem; border-radius: 4px;">
+                                                <em>"${data.response.transcript}"</em>
+                                            </p>
+                                            <h4 style="margin-top: 1.5rem; font-weight: 500;">Here's an explanation:</h4>
+                                            <div>${data.response.response}</div>`;
+                                        resultContainer.innerHTML = html;
+                                    } else {
+                                        const errorMessage = data.error || data.detail || 'Failed to process audio.';
+                                        resultContainer.innerHTML = `<p style="color: var(--error-color);">Error: ${errorMessage}</p>`;
+                                    }
+                                } catch (error) {
+                                    resultContainer.innerHTML = `<p style="color: var(--error-color);">An error occurred: ${error.message}</p>`;
+                                } finally {
+                                    statusEl.textContent = 'Click to start recording another question.';
+                                    stream.getTracks().forEach(track => track.stop());
+                                    recordBtn.disabled = false;
+                                }
+                            };
+
+                            mediaRecorder.start();
+                        } catch (err) {
+                            statusEl.textContent = 'Could not access microphone. Please grant permission.';
+                            console.error("Microphone access error:", err);
+                            resultContainer.innerHTML = `<p style="color: var(--error-color);">Microphone access denied. Please check your browser permissions.</p>`;
+                        }
+                    }
+                });
+            }
+        }
+
+        // --- PAGE NAVIGATION FUNCTION ---
+        window.showAppPage = (pageId) => {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.sidebar-item').forEach(item => item.classList.remove('active'));
+            
+            const page = document.getElementById(pageId);
+            const sidebarItem = document.querySelector(`.sidebar-item[data-page="${pageId}"]`);
+            
+            if (page) page.classList.add('active');
+            if (sidebarItem) sidebarItem.classList.add('active');
+            
+            const sidebar = document.getElementById('sidebar');
+            const sidebarOverlay = document.getElementById('sidebar-overlay');
+            if (sidebar) sidebar.classList.remove('show');
+            if (sidebarOverlay) sidebarOverlay.classList.remove('show');
+        };
+    });
+    </script>
+</body>
+</html>
+
+
+

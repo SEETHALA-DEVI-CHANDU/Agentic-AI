@@ -1,0 +1,17 @@
+[
+    {
+        "grade": 1,
+        "topic": "Addition",
+        "content": "Addition is putting things together. If you have 2 apples and you get 1 more apple, you have 3 apples in total. The sign for addition is '+'."
+    },
+    {
+        "grade": 3,
+        "topic": "Photosynthesis",
+        "content": "Photosynthesis is how plants make their own food. They use sunlight, water from the soil, and a gas called carbon dioxide from the air. This process happens in the leaves, which are green because of a substance called chlorophyll."
+    },
+    {
+        "grade": 5,
+        "topic": "The Solar System",
+        "content": "The Solar System is made up of the Sun and everything that orbits it, including eight planets. The planets are Mercury, Venus, Earth, Mars, Jupiter, Saturn, Uranus, and Neptune. Earth is the third planet from the Sun."
+    }
+]

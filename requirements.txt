@@ -1,0 +1,11 @@
+fastapi
+uvicorn[standard]
+python-dotenv
+google-generativeai
+Pillow
+python-multipart
+google-cloud-firestore
+sentence-transformers
+scikit-learn
+passlib[bcrypt]
+google-cloud-speech
