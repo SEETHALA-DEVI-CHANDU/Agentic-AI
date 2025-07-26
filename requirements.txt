@@ -9,3 +9,11 @@ sentence-transformers
 scikit-learn
 passlib[bcrypt]
 google-cloud-speech
+firebase-admin>=6.4.0
+requests>=2.31.0
+pydantic==2.5.0
+asyncio-mqtt==0.16.1
+pytest==7.4.3
+pytest-asyncio==0.21.1
+httpx==0.25.2
+pydantic[email]
