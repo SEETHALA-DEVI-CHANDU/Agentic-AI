@@ -310,11 +310,11 @@ LOCAL_KNOWLEDGE_BASE = [
 
 
 class RAGService:
-    """Enhanced RAG service that handles both file-based knowledge bases and educational content."""
+    """Enhanced RAG service that handles both file-based knowledge bases and educational content with multilingual support."""
 
     def __init__(self):
         try:
-            # Initialize SentenceTransformer model for embeddings
+            # Initialize SentenceTransformer model for embeddings (supports multilingual)
             self.encoder = SentenceTransformer('all-MiniLM-L6-v2')
             
             # File-based knowledge bases (original functionality)
@@ -328,11 +328,54 @@ class RAGService:
             self.initialize_file_knowledge_base()
             self.initialize_educational_knowledge_base()
             
-            logger.info("✅ Enhanced RAG service initialized with both file-based and educational knowledge bases.")
+            logger.info("✅ Enhanced multilingual RAG service initialized with both file-based and educational knowledge bases.")
             
         except Exception as e:
             logger.critical(f"🚨 Failed to initialize RAG service. Error: {e}")
             raise
+
+    def detect_language(self, text: str) -> str:
+        """
+        Simple language detection based on character patterns.
+        Returns language code (en, hi, es, fr, etc.)
+        """
+        # Basic language detection logic
+        # You can enhance this with a proper language detection library like 'langdetect'
+        
+        # Hindi detection (basic)
+        hindi_chars = any('\u0900' <= char <= '\u097F' for char in text)
+        if hindi_chars:
+            return 'hi'
+        
+        # Spanish detection (basic)
+        spanish_chars = any(char in 'ñáéíóúü¿¡' for char in text.lower())
+        if spanish_chars:
+            return 'es'
+        
+        # French detection (basic)
+        french_chars = any(char in 'àâäçéèêëïîôùûüÿ' for char in text.lower())
+        if french_chars:
+            return 'fr'
+        
+        # Default to English
+        return 'en'
+
+    def get_language_instruction(self, detected_language: str) -> str:
+        """Returns language-specific instruction for the AI model."""
+        language_instructions = {
+            'hi': "कृपया अपना उत्तर हिंदी में दें।",
+            'es': "Por favor, responde en español.",
+            'fr': "Veuillez répondre en français.",
+            'en': "Please respond in English.",
+            'de': "Bitte antworten Sie auf Deutsch.",
+            'it': "Per favore, rispondi in italiano.",
+            'pt': "Por favor, responda em português.",
+            'ru': "Пожалуйста, отвечайте на русском языке.",
+            'ja': "日本語で回答してください。",
+            'ko': "한국어로 답변해 주세요.",
+            'zh': "请用中文回答。"
+        }
+        return language_instructions.get(detected_language, "Please respond in English.")
 
     def initialize_file_knowledge_base(self):
         """Loads file-based knowledge base (original functionality)."""
@@ -402,7 +445,7 @@ class RAGService:
             }
 
     def search_kb(self, query: str, kb_name: str, top_k: int = 1):
-        """Searches a specific file-based knowledge base for the most relevant content (original functionality)."""
+        """Searches a specific file-based knowledge base for the most relevant content."""
         if kb_name not in self.embeddings:
             logger.warning(f"Knowledge base '{kb_name}' not found.")
             return None
@@ -413,26 +456,23 @@ class RAGService:
         sim = cosine_similarity(query_embedding, kb_data['embeddings'])[0]
         top_index = np.argmax(sim)
         
-        # Optional similarity threshold
-        # if sim[top_index] < 0.3: return None
-        
         return kb_data['data'][top_index]
 
-    def get_educational_knowledge(self, grade: int, subject: str, query: str = None, top_k: int = 3):
+    def get_educational_knowledge(self, grade: int, subject: str = None, query: str = None, top_k: int = 3):
         """
         Fetches relevant educational knowledge, optionally using semantic search.
         
         Args:
             grade (int): Grade level (1-10)
-            subject (str): Subject name (Math, Science, English, Social)
+            subject (str, optional): Subject name (Math, Science, English, Social)
             query (str, optional): Query for semantic search
             top_k (int): Number of top results to return
             
         Returns:
-            list or str: Educational content entries or combined content string
+            list or None: Educational content entries
         """
         try:
-            # First, filter by grade and subject if specified
+            # Filter by grade and subject if specified
             relevant_entries = []
             for entry in LOCAL_KNOWLEDGE_BASE:
                 if grade and entry['grade'] != grade:
@@ -442,12 +482,12 @@ class RAGService:
                 relevant_entries.append(entry)
             
             if not relevant_entries:
-                logger.info(f"📚 No educational content found for Grade {grade} {subject}")
+                logger.info(f"📚 No educational content found for Grade {grade} {subject if subject else 'any subject'}")
                 return None
             
             # If no query provided, return filtered results
             if not query:
-                logger.info(f"📚 Found {len(relevant_entries)} educational entries for Grade {grade} {subject}")
+                logger.info(f"📚 Found {len(relevant_entries)} educational entries for Grade {grade} {subject if subject else 'any subject'}")
                 return relevant_entries[:top_k]
             
             # Use semantic search if query is provided and embeddings are available
@@ -480,39 +520,18 @@ class RAGService:
             logger.error(f"❌ Error fetching educational knowledge: {e}")
             return None
 
-    def infer_subject(self, text: str) -> str:
-        """Infers the subject from the given text using keyword matching."""
-        text_lower = text.lower()
-        
-        # Math keywords
-        math_keywords = ['math', 'algebra', 'geometry', 'equation', 'theorem', 'fraction', 'decimal', 'multiplication', 'division', 'linear', 'function']
-        if any(keyword in text_lower for keyword in math_keywords):
-            return 'Math'
-        
-        # Science keywords
-        science_keywords = ['science', 'biology', 'physics', 'chemistry', 'ecosystem', 'water cycle', 'photosynthesis', 'energy', 'motion', 'cell', 'atom']
-        if any(keyword in text_lower for keyword in science_keywords):
-            return 'Science'
-        
-        # Social studies keywords
-        social_keywords = ['history', 'war', 'ancient', 'revolution', 'civil war', 'geography', 'culture', 'government', 'social']
-        if any(keyword in text_lower for keyword in social_keywords):
-            return 'Social'
-        
-        # English keywords
-        english_keywords = ['english', 'literature', 'grammar', 'writing', 'poem', 'story', 'reading']
-        if any(keyword in text_lower for keyword in english_keywords):
-            return 'English'
-        
-        return 'English'  # Default fallback
-
-    async def ask_gemini(self, user_message: str, grade: int, conversation_history: list, retrieved_knowledge: str) -> str:
-        """Interacts with the Gemini model to get a response."""
+    async def ask_gemini(self, user_message: str, grade: int, conversation_history: list, retrieved_knowledge: str, detected_language: str) -> str:
+        """Interacts with the Gemini model to get a response in the detected language."""
         if not GEMINI_API_KEY or GEMINI_API_KEY == "YOUR_GEMINI_API_KEY_HERE":
             return "❌ Error: Gemini API key not configured. Please set your GEMINI_API_KEY environment variable."
         
-        # Construct the prompt for Gemini
+        # Get language-specific instruction
+        language_instruction = self.get_language_instruction(detected_language)
+        
+        # Construct the prompt for Gemini with language instruction
         prompt = f"""You are a helpful educational assistant for a {grade}th grade student.
+
+IMPORTANT: {language_instruction} The user's question is in {detected_language} language, so please respond in the same language.
 
 Here is the current conversation history:
 {"\n".join([f"{m['role']}: {m['text']}" for m in conversation_history[-5:]])}
@@ -522,7 +541,7 @@ Here is some relevant knowledge base information for {grade}th grade:
 
 Based on the conversation history and the provided knowledge, please answer the user's question: "{user_message}"
 
-Please provide a comprehensive and age-appropriate answer for a {grade}th grade student. If the knowledge base doesn't contain specific information, use your general knowledge to provide a helpful educational response.
+Please provide a comprehensive and age-appropriate answer for a {grade}th grade student in the same language as the question. If the knowledge base doesn't contain specific information, use your general knowledge to provide a helpful educational response.
 """
 
         payload = {
@@ -567,19 +586,24 @@ Please provide a comprehensive and age-appropriate answer for a {grade}th grade 
             logger.error(f"❌ Error calling Gemini API: {e}")
             return "I encountered an error while processing your request. Please try again."
 
-    async def process_educational_query(self, user_question: str, user_id: str, grade: int = 8) -> str:
+    async def process_educational_query(self, user_question: str, user_id: str, grade: int = 8, specified_language: str = None) -> str:
         """
-        Processes a user query using RAG for educational content with Gemini integration.
+        Processes a user query using RAG for educational content with Gemini integration and multilingual support.
 
         Args:
             user_question (str): The question from the user.
             user_id (str): A unique identifier for the user/session.
             grade (int): The grade level for the question.
+            specified_language (str, optional): Explicitly specified language code.
 
         Returns:
-            str: The model's response.
+            str: The model's response in the appropriate language.
         """
         current_conversation_history = []
+        
+        # Detect language from user question or use specified language
+        detected_language = specified_language if specified_language else self.detect_language(user_question)
+        logger.info(f"🌐 Detected/Specified language: {detected_language}")
         
         # Try to load conversation history from Firebase if available
         if db:
@@ -605,16 +629,13 @@ Please provide a comprehensive and age-appropriate answer for a {grade}th grade 
             'role': 'user', 
             'text': user_question, 
             'timestamp': firestore.SERVER_TIMESTAMP if db else None, 
-            'grade': grade
+            'grade': grade,
+            'language': detected_language
         }
         current_conversation_history.append({'role': 'user', 'text': user_question})
 
-        # Determine subject from user message
-        inferred_subject = self.infer_subject(user_question)
-        logger.info(f"🎯 Inferred subject: {inferred_subject}")
-
-        # Fetch relevant educational knowledge
-        educational_entries = self.get_educational_knowledge(grade, inferred_subject, user_question, top_k=3)
+        # Fetch relevant educational knowledge (semantic search will work across languages)
+        educational_entries = self.get_educational_knowledge(grade, None, user_question, top_k=3)
         
         # Format retrieved knowledge for Gemini
         retrieved_knowledge = ""
@@ -624,15 +645,22 @@ Please provide a comprehensive and age-appropriate answer for a {grade}th grade 
                 for entry in educational_entries
             ])
 
-        # Call Gemini with user message, grade, conversation history, and retrieved knowledge
-        gemini_response = await self.ask_gemini(user_question, grade, current_conversation_history, retrieved_knowledge)
+        # Call Gemini with user message, grade, conversation history, retrieved knowledge, and language
+        gemini_response = await self.ask_gemini(
+            user_question, 
+            grade, 
+            current_conversation_history, 
+            retrieved_knowledge, 
+            detected_language
+        )
 
         # Add model response to conversation memory
         model_message_data = {
             'role': 'model', 
             'text': gemini_response, 
             'timestamp': firestore.SERVER_TIMESTAMP if db else None, 
-            'grade': grade
+            'grade': grade,
+            'language': detected_language
         }
 
         # Save to Firebase if available
@@ -652,13 +680,13 @@ Please provide a comprehensive and age-appropriate answer for a {grade}th grade 
 
 # --- Example Usage ---
 async def main():
-    """Example usage of the enhanced RAG service."""
+    """Example usage of the enhanced multilingual RAG service."""
     try:
         # Initialize the enhanced RAG service
         rag_service = RAGService()
         
         print("\n" + "="*50)
-        print("🤖 Enhanced RAG Service Examples")
+        print("🤖 Enhanced Multilingual RAG Service Examples")
         print("="*50)
 
         # Example 1: File-based knowledge base search (if available)
@@ -677,8 +705,8 @@ async def main():
             for entry in educational_content:
                 print(f"- Grade {entry['grade']} {entry['subject']}: {entry['chapter_name']}")
 
-        # Example 3: Educational query processing with Gemini
-        print("\n--- 🤖 Educational Query Processing ---")
+        # Example 3: Educational query processing with Gemini (English)
+        print("\n--- 🤖 Educational Query Processing (English) ---")
         test_user_id = "test_user_123"
         
         response = await rag_service.process_educational_query(
@@ -686,11 +714,51 @@ async def main():
             user_id=test_user_id, 
             grade=5
         )
-        print(f"🤖 Bot Response: {response}")
+        print(f"🤖 Bot Response (English): {response}")
+
+        # Example 4: Educational query processing with Gemini (Hindi)
+        print("\n--- 🤖 Educational Query Processing (Hindi) ---")
+        
+        response_hindi = await rag_service.process_educational_query(
+            "पारिस्थितिकी तंत्र क्या है और यह कैसे काम करता है?", 
+            user_id=test_user_id, 
+            grade=5
+        )
+        print(f"🤖 Bot Response (Hindi): {response_hindi}")
+
+        # Example 5: Educational query processing with specified language
+        print("\n--- 🤖 Educational Query Processing (Specified Language) ---")
+        
+        response_spanish = await rag_service.process_educational_query(
+            "What are ecosystems?", 
+            user_id=test_user_id, 
+            grade=5,
+            specified_language="es"  # Force Spanish response
+        )
+        print(f"🤖 Bot Response (Spanish): {response_spanish}")
+
+        # Example 6: Language detection test
+        print("\n--- 🌐 Language Detection Test ---")
+        test_questions = [
+            "What is photosynthesis?",
+            "प्रकाश संश्लेषण क्या है?",
+            "¿Qué es la fotosíntesis?",
+            "Qu'est-ce que la photosynthèse?"
+        ]
+        
+        for question in test_questions:
+            detected_lang = rag_service.detect_language(question)
+            instruction = rag_service.get_language_instruction(detected_lang)
+            print(f"Question: {question}")
+            print(f"Detected Language: {detected_lang}")
+            print(f"Language Instruction: {instruction}")
+            print("---")
         
         print("\n" + "="*50)
-        print("✅ All examples completed!")
+        print("✅ All multilingual examples completed!")
         
     except Exception as e:
         logger.error(f"❌ Error in main function: {e}")
 
+if __name__ == "__main__":
+    asyncio.run(main())
