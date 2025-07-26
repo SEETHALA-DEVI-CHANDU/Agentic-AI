@@ -1,62 +1,60 @@
-# agents/visual_agent.py - Optimized for Blackboard-Friendly Drawings
+# agents/visual_agent.py - Updated with Custom Instructions
 
 class VisualAgent:
     def __init__(self, gemini_service):
         self.gemini_service = gemini_service
         
-        # Enhanced system prompt optimized for blackboard drawing
+        # Updated system prompt with new instructions
         self.system_prompt = """
-You are an educational AI that creates simple SVG diagrams specifically designed for teachers to easily draw on a blackboard or whiteboard.
+You are an educational AI that creates SVG diagrams to clearly explain data or answer questions for students.
 
 CRITICAL REQUIREMENTS:
-1. Use ONLY simple geometric shapes: circles, rectangles, triangles, straight lines, and basic curves
-2. Use thick black lines (stroke-width="3" or higher) for maximum visibility
-3. No complex shapes, gradients, patterns, or fine details
-4. Maximum 8-10 elements per diagram to keep it simple
-5. Clear, bold text labels using large fonts (font-size="16" or larger)
-6. High contrast: black lines on white background only
-7. Arrange elements with plenty of spacing for clarity
+1. The image should clearly explain the data given by the user or answer the question if users asks it
+2. Keep it simple and easy to understand
+3. Do not include any toxic content since the end user might probably be a student
+4. You are allowed to add colors and do any creative things until the image provides amazing response
+5. Focus on clarity and educational value
+6. Make the diagram engaging and visually appealing
+7. Use appropriate colors to enhance understanding
 
-BLACKBOARD-FRIENDLY DESIGN PRINCIPLES:
-- Think "How would a teacher draw this with chalk in 2 minutes?"
-- Use basic shapes that are easy to draw freehand
-- Keep proportions simple and forgiving
-- Arrows should be simple triangles or basic arrow shapes
-- Text should be minimal but clear
-- Focus on showing relationships and flow rather than realistic details
+DESIGN PRINCIPLES:
+- Prioritize clear communication of the concept or data
+- Make it visually engaging with appropriate use of colors
+- Ensure the image content is appropriate for students
+- Be creative in your approach while maintaining educational focus
+- Use visual elements that enhance comprehension
 
 OUTPUT FORMAT:
 - Return ONLY the SVG code starting with <svg> and ending with </svg>
 - Use viewBox="0 0 400 300" for consistent sizing
 - No explanations, descriptions, or additional text
 
-EXAMPLE STYLE:
-Simple circles for sun/processes, rectangles for containers, basic arrows for flow, stick-figure style simplicity.
+Focus on creating amazing visual responses that effectively communicate the information or answer the user's question.
 """
 
     def generate_visual(self, user_description: str) -> str:
         """
-        Generate blackboard-friendly educational visuals
+        Generate educational visuals that clearly explain data or answer questions
         
         Args:
-            user_description: Teacher's description of what they want to draw
+            user_description: User's description of what they want visualized or question to be answered
             
         Returns:
-            Clean SVG code ready for display and easy blackboard replication
+            Clean SVG code ready for display
         """
         
-        # Enhanced prompt with specific blackboard instructions
+        # Enhanced prompt with specific instructions
         full_prompt = [
             self.system_prompt,
             f"""
-Create a simple diagram for: {user_description}
+Create a diagram for: {user_description}
 
 REMEMBER:
-- A teacher should be able to copy this on a blackboard in under 3 minutes
-- Use only basic shapes a person can draw freehand
-- Keep it simple enough that students can also sketch it in their notebooks
-- Focus on the key concept, not artistic beauty
-- Make text large and readable from across a classroom
+- Clearly explain the data or answer the question provided
+- Keep it simple but engaging
+- Use colors creatively to enhance understanding
+- Ensure content is appropriate for students
+- Make the visual response amazing and effective
 
 Generate the SVG now:
 """
@@ -65,12 +63,12 @@ Generate the SVG now:
         # Call the AI service to get the response
         svg_code = self.gemini_service.generate_text_response(full_prompt)
 
-        # Enhanced cleanup and validation
+        # Clean and validate the SVG code
         cleaned_svg = self._clean_and_validate_svg(svg_code)
         return cleaned_svg
 
     def _clean_and_validate_svg(self, svg_code: str) -> str:
-        """Clean and validate the SVG code for blackboard use"""
+        """Clean and validate the SVG code"""
         
         # Extract SVG content
         if "<svg" in svg_code and "</svg>" in svg_code:
@@ -80,26 +78,19 @@ Generate the SVG now:
         else:
             return self._create_fallback_svg("Error: Could not generate proper SVG")
         
-        # Basic validation for blackboard-friendly elements
-        if not self._is_blackboard_friendly(clean_svg):
+        # Basic validation
+        if not self._is_valid_svg(clean_svg):
             return self._create_fallback_svg("Simple diagram placeholder")
             
         return clean_svg
 
-    def _is_blackboard_friendly(self, svg_code: str) -> bool:
-        """Check if the SVG uses blackboard-friendly elements"""
+    def _is_valid_svg(self, svg_code: str) -> bool:
+        """Check if the SVG is valid and appropriate"""
         
-        # Check for overly complex elements that would be hard to draw
-        complex_elements = [
-            'path d="M', 'bezier', 'curve', 'polygon points=', 
-            'gradient', 'pattern', 'filter', 'animation'
-        ]
-        
-        svg_lower = svg_code.lower()
-        for element in complex_elements:
-            if element in svg_lower:
-                return False
-                
+        # Check for basic SVG structure
+        if not ("<svg" in svg_code and "</svg>" in svg_code):
+            return False
+            
         return True
 
     def _create_fallback_svg(self, message: str) -> str:
@@ -126,13 +117,13 @@ Generate the SVG now:
         else:
             element_text = "Include the most important elements for understanding this concept"
             
-        description = f"Create a simple {concept} diagram. {element_text}. Make it perfect for a teacher to draw on a blackboard."
+        description = f"Create a diagram explaining {concept}. {element_text}. Make it colorful, engaging, and educational."
         
         return self.generate_visual(description)
 
     def generate_process_flow(self, process_name: str, steps: list) -> str:
         """
-        Generate simple process flow diagrams
+        Generate process flow diagrams
         
         Args:
             process_name: Name of the process
@@ -143,13 +134,13 @@ Generate the SVG now:
         """
         
         steps_text = " → ".join(steps)
-        description = f"Create a simple flow diagram for {process_name} with these steps: {steps_text}. Use boxes and arrows that are easy to draw on a blackboard."
+        description = f"Create a flow diagram for {process_name} with these steps: {steps_text}. Use colors and creative design to make it engaging."
         
         return self.generate_visual(description)
 
     def generate_comparison_chart(self, title: str, items: dict) -> str:
         """
-        Generate simple comparison charts
+        Generate comparison charts
         
         Args:
             title: Chart title
@@ -160,6 +151,6 @@ Generate the SVG now:
         """
         
         comparison_text = ", ".join([f"{k}: {v}" for k, v in items.items()])
-        description = f"Create a simple comparison chart for {title}. Compare: {comparison_text}. Use simple boxes and text that can be easily drawn on a blackboard."
+        description = f"Create a comparison chart for {title}. Compare: {comparison_text}. Use colors and creative design to clearly show the differences."
         
         return self.generate_visual(description)
