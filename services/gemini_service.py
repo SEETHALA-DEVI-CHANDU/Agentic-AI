@@ -39,3 +39,12 @@ class GeminiService:
         except Exception as e:
             logger.error(f"Gemini image analysis error: {e}")
             return f"Error analyzing image: {e}"
+        
+    def generate_content(self, prompt_parts: list):
+        """Generates content using Gemini's text model."""
+        try:
+            response = self.text_model.generate_content(prompt_parts)
+            return response.text
+        except Exception as e:
+            logger.error(f"Gemini content generation error: {e}")
+            return f"Error generating content: {e}"

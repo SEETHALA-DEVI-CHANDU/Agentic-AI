@@ -8,7 +8,7 @@ from fastapi import FastAPI, File, UploadFile, HTTPException, Depends
 from services.gemini_service import GeminiService  # Your Gemini service
 from agents.audio_agent import AudioAgent        # Your AudioAgent class
 from services.transcription_service import transcribe_audio
-
+from agents.game_agent import GameAgent
 # Service and Agent Imports (Implicitly used via injected agents)
 from services.auth_service import AuthService
 
@@ -55,6 +55,31 @@ class ChatRequest(BaseModel):
 
 class ChatResponse(BaseModel):
     response: str = Field(..., description="The chatbot's response")
+
+# New Pydantic models for game functionality
+class GameRequest(BaseModel):
+    topic: str = Field(..., min_length=1, max_length=200, description="The topic for the game")
+    difficulty: str = Field(..., description="Difficulty level: easy, medium, or hard")
+    
+    @validator('topic')
+    def validate_topic(cls, v):
+        if not v.strip():
+            raise ValueError('Topic cannot be empty or just whitespace')
+        return v.strip()
+    
+    @validator('difficulty')
+    def validate_difficulty(cls, v):
+        allowed_difficulties = ['easy', 'medium', 'hard']
+        if v.lower() not in allowed_difficulties:
+            raise ValueError(f'Difficulty must be one of: {", ".join(allowed_difficulties)}')
+        return v.lower()
+
+class GameResponse(BaseModel):
+    success: bool = Field(..., description="Whether the game generation was successful")
+    games: list = Field(..., description="List of 5 Two Truths and a Lie games")
+    topic: str = Field(..., description="The topic used for generation")
+    difficulty: str = Field(..., description="The difficulty level used")
+
 
 def generate_user_id() -> str:
     """Generate a unique user ID."""
@@ -153,6 +178,59 @@ def setup_api_routes(
     async def handle_ask_learn(request: AskLearnRequest):
         response_text = grade_agent.answer_question(request.question, request.grade, request.difficulty)
         return JSONResponse(content={"response": response_text})
+    
+    def get_game_agent(gemini_service: GeminiService = Depends(get_gemini_service)):
+        """Provides a GameAgent instance."""
+        return GameAgent(gemini_service)
+    
+    # --- NEW GAME ROUTE ---
+    
+    @router.post("/game")
+    async def handle_game_generation(
+        request: GameRequest,
+        game_agent: GameAgent = Depends(get_game_agent)
+    ) -> GameResponse:
+        """
+        Generate 5 "Two Truths and a Lie" games for the given topic and difficulty.
+        
+        Args:
+            request: GameRequest containing topic and difficulty
+            game_agent: Injected GameAgent instance
+            
+        Returns:
+            GameResponse with generated games
+        """
+        try:
+            logger.info(f"Generating games for topic: {request.topic}, difficulty: {request.difficulty}")
+            
+            # Generate the games using the game agent
+            games = game_agent.generate_two_truths_one_lie(
+                topic=request.topic,
+                difficulty=request.difficulty
+            )
+            
+            logger.info(f"Successfully generated {len(games)} games")
+            
+            return GameResponse(
+                success=True,
+                games=games,
+                topic=request.topic,
+                difficulty=request.difficulty
+            )
+            
+        except ValueError as e:
+            logger.error(f"Validation error in game generation: {str(e)}")
+            raise HTTPException(
+                status_code=422,
+                detail=f"Validation error: {str(e)}"
+            )
+        except Exception as e:
+            logger.error(f"Unexpected error in game generation: {str(e)}")
+            raise HTTPException(
+                status_code=500,
+                detail="Failed to generate games - please try again later"
+            )
+
 
     @router.post("/plan-week")
     async def handle_plan_week(request: PlanWeekRequest):

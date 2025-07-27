@@ -317,6 +317,460 @@
             min-height: 150px;
         }
 
+
+        /* --- GAME STYLES --- */
+
+
+        .game-container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: #FFFFFF; /* Fallback for light mode */
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border-color);
+        }
+
+        #learning-games .page-title { /* Scoped to the game page */
+            font-size: 2.5rem;
+            color: #2d3748;
+            text-align: center;
+            margin-bottom: 10px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        #learning-games .page-subtitle { /* Scoped to the game page */
+            text-align: center;
+            color: var(--secondary-text);
+            margin-bottom: 40px;
+            font-size: 1.1rem;
+        }
+
+        .game-setup {
+            background: #f7fafc;
+            padding: 30px;
+            border-radius: 16px;
+            margin-bottom: 30px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .setup-title {
+            font-size: 1.5rem;
+            color: var(--text-color);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .setup-title::before {
+            content: "🎯";
+            font-size: 1.2em;
+        }
+        
+        #learning-games .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--text-color);
+            font-size: 0.95rem;
+        }
+        
+        #learning-games .form-input, #learning-games .form-select {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid var(--border-color);
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background: var(--input-bg);
+            color: var(--text-color);
+        }
+
+        #learning-games .form-input:focus, #learning-games .form-select:focus {
+            outline: none;
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
+        }
+
+        .difficulty-selector {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 15px;
+            margin-top: 10px;
+        }
+
+        .difficulty-option {
+            padding: 12px 20px;
+            border: 2px solid var(--border-color);
+            border-radius: 10px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: var(--input-bg);
+            font-weight: 500;
+            color: var(--text-color);
+        }
+
+        .difficulty-option:hover {
+            border-color: var(--accent-color);
+            background: rgba(102, 126, 234, 0.1);
+        }
+
+        .difficulty-option.selected {
+            border-color: #667eea;
+            background: #667eea;
+            color: white;
+        }
+
+        .generate-btn {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+            margin-top: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .generate-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .generate-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .loading-spinner {
+            width: 20px;
+            height: 20px;
+            border: 2px solid transparent;
+            border-top: 2px solid white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .games-section {
+            display: none;
+        }
+
+        .games-section.visible {
+            display: block;
+        }
+
+        .game-card {
+            background: var(--surface-color);
+            border-radius: 16px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border-color);
+            transition: all 0.3s ease;
+        }
+
+        .game-card:hover {
+            box-shadow: var(--hover-shadow);
+            transform: translateY(-2px);
+        }
+
+        .game-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+
+        .game-number {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .game-status {
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        .status-pending {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .status-correct {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .status-incorrect {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .statements-list {
+            list-style: none;
+            margin-bottom: 20px;
+        }
+
+        .statement-item {
+            padding: 15px 20px;
+            margin-bottom: 12px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid var(--border-color);
+            background: var(--input-bg);
+            position: relative;
+        }
+
+        .statement-item:hover:not(.disabled) {
+            border-color: var(--accent-color);
+            background: rgba(102, 126, 234, 0.1);
+        }
+
+        .statement-item.selected {
+            border-color: #667eea;
+            background: rgba(102, 126, 234, 0.2);
+        }
+
+        .statement-item.correct {
+            border-color: #10b981;
+            background: rgba(16, 185, 129, 0.1);
+        }
+
+        .statement-item.incorrect {
+            border-color: #ef4444;
+            background: rgba(239, 68, 68, 0.1);
+        }
+
+        .statement-item.lie-revealed {
+            border-color: #f59e0b;
+            background: rgba(245, 158, 11, 0.1);
+        }
+
+        .statement-item.disabled {
+            pointer-events: none;
+            opacity: 0.7;
+        }
+
+        .statement-text {
+            font-size: 1rem;
+            line-height: 1.5;
+            color: var(--text-color);
+        }
+
+        .statement-indicator {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 1.2rem;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .statement-item.correct .statement-indicator,
+        .statement-item.incorrect .statement-indicator,
+        .statement-item.lie-revealed .statement-indicator {
+            opacity: 1;
+        }
+
+        .game-actions {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 15px;
+        }
+
+        .check-btn, .next-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            flex: 1;
+        }
+
+        .check-btn {
+            background: #667eea;
+            color: white;
+        }
+
+        .check-btn:hover:not(:disabled) {
+            background: #5a67d8;
+        }
+
+        .check-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .next-btn {
+            background: #10b981;
+            color: white;
+            display: none;
+        }
+
+        .next-btn:hover {
+            background: #059669;
+        }
+
+        .next-btn.visible {
+            display: block;
+        }
+
+        .explanation {
+            background: rgba(14, 165, 233, 0.1);
+            border: 1px solid var(--accent-color);
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 15px;
+            display: none;
+        }
+
+        .explanation.visible {
+            display: block;
+        }
+
+        .explanation-title {
+            font-weight: 600;
+            color: var(--text-color);
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .explanation-title::before {
+            content: "💡";
+        }
+
+        .explanation-text {
+            color: var(--secondary-text);
+            line-height: 1.6;
+        }
+
+        .score-summary {
+            background: linear-gradient(135deg, rgba(240, 249, 255, 0.1), rgba(224, 242, 254, 0.1));
+            border-radius: 16px;
+            padding: 25px;
+            text-align: center;
+            margin-top: 30px;
+            border: 1px solid var(--accent-color);
+        }
+
+        .score-title {
+            font-size: 1.5rem;
+            color: var(--text-color);
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .score-text {
+            font-size: 1.2rem;
+            color: var(--secondary-text);
+            margin-bottom: 15px;
+        }
+
+        .play-again-btn {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .play-again-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .error-message {
+            background: rgba(254, 226, 226, 0.1);
+            color: #ef4444;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 20px 0;
+            border: 1px solid #ef4444;
+            display: none;
+        }
+
+        .error-message.visible {
+            display: block;
+        }
+        
+        /* DARK MODE STYLES FOR GAME */
+        [data-theme="dark"] .game-container {
+            background: var(--surface-color);
+            backdrop-filter: none;
+        }
+
+        [data-theme="dark"] .game-setup {
+            background: var(--background-color);
+            border-color: var(--border-color);
+        }
+
+        [data-theme="dark"] .difficulty-option .difficulty-subtext {
+            color: var(--secondary-text);
+        }
+        
+        [data-theme="dark"] .status-pending {
+            background: #4a4a2a;
+            color: #fef08a;
+        }
+
+        [data-theme="dark"] .status-correct {
+            background: #14532d;
+            color: #a7f3d0;
+        }
+
+        [data-theme="dark"] .status-incorrect {
+            background: #7f1d1d;
+            color: #fecaca;
+        }
+
+        @media (max-width: 768px) {
+            .game-container {
+                padding: 20px;
+                margin: 10px;
+            }
+            
+            #learning-games .page-title {
+                font-size: 2rem;
+            }
+            
+            .difficulty-selector {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+        }
+
         /* --- CHAT UI STYLES --- */
         .chat-container {
             display: flex;
@@ -959,7 +1413,7 @@
                         <div class="form-group">
                             <label for="visual-prompt" class="form-label">Describe the visual you want</label>
                             <textarea id="visual-prompt" class="form-input" rows="4" 
-                                      placeholder="e.g., Draw a simple diagram showing the water cycle" required></textarea>
+                                        placeholder="e.g., Draw a simple diagram showing the water cycle" required></textarea>
                         </div>
                         <button type="submit" class="btn-primary">
                             <i class="fas fa-lightbulb"></i><span class="button-text"> Generate Visual</span>
@@ -978,13 +1432,66 @@
                     </div>
                     <div class="response-area" id="audio-response-area" style="margin-top: 2rem;">The answer will appear here.</div>
                 </div>
+
                 <div class="page" id="learning-games">
-                    <h1 class="page-title">Learning Games</h1>
-                    <p class="page-subtitle">Interactive games for students.</p>
-                    <div class="form-container">
-                        <p>This feature is under development. Coming soon with exciting educational games!</p>
+                    <div class="game-container">
+                        <h1 class="page-title">Learning Games</h1>
+                        <p class="page-subtitle">Two Truths and a Lie - Test your knowledge!</p>
+                        
+                        <div class="game-setup" id="gameSetup">
+                            <h2 class="setup-title">Set Up Your Game</h2>
+                            
+                            <div class="form-group">
+                                <label class="form-label" for="topicInput">Choose a topic:</label>
+                                <input 
+                                    type="text" 
+                                    id="topicInput" 
+                                    class="form-input" 
+                                    placeholder="e.g., Solar System, World War II, Photosynthesis..."
+                                    maxlength="200"
+                                >
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label">Select difficulty level:</label>
+                                <div class="difficulty-selector">
+                                    <div class="difficulty-option" data-difficulty="easy">
+                                        <div style="font-size: 1.2em; margin-bottom: 5px;">🟢</div>
+                                        <div>Easy</div>
+                                        <div class="difficulty-subtext" style="font-size: 0.8em; color: #666; margin-top: 4px;">Basic concepts</div>
+                                    </div>
+                                    <div class="difficulty-option selected" data-difficulty="medium">
+                                        <div style="font-size: 1.2em; margin-bottom: 5px;">🟡</div>
+                                        <div>Medium</div>
+                                        <div class="difficulty-subtext" style="font-size: 0.8em; color: #666; margin-top: 4px;">Moderate level</div>
+                                    </div>
+                                    <div class="difficulty-option" data-difficulty="hard">
+                                        <div style="font-size: 1.2em; margin-bottom: 5px;">🔴</div>
+                                        <div>Hard</div>
+                                        <div class="difficulty-subtext" style="font-size: 0.8em; color: #666; margin-top: 4px;">Advanced topics</div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <button class="generate-btn" id="generateBtn">
+                                <span id="btnText">🎮 Generate Games</span>
+                                <div class="loading-spinner" id="loadingSpinner" style="display: none;"></div>
+                            </button>
+                        </div>
+                        
+                        <div class="error-message" id="errorMessage"></div>
+                        
+                        <div class="games-section" id="gamesSection">
+                            <div id="gamesList"></div>
+                            <div class="score-summary" id="scoreSummary" style="display: none;">
+                                <div class="score-title">🎉 Game Complete!</div>
+                                <div class="score-text" id="scoreText"></div>
+                                <button class="play-again-btn" id="playAgainBtn">Play Again</button>
+                            </div>
+                        </div>
                     </div>
                 </div>
+
                 <div class="page" id="plan-week">
                     <h1 class="page-title">Plan My Week</h1>
                     <p class="page-subtitle">AI-powered weekly lesson planner.</p>
@@ -1026,6 +1533,333 @@
     </template>
     
     <script>
+        class TwoTruthsOneLieGame {
+            constructor() {
+                this.selectedDifficulty = 'medium';
+                this.games = [];
+                this.currentGameIndex = 0;
+                this.score = 0;
+                this.gameStates = [];
+                
+                this.initializeEventListeners();
+            }
+            
+            initializeEventListeners() {
+                // Difficulty selection
+                document.querySelectorAll('.difficulty-option').forEach(option => {
+                    option.addEventListener('click', (e) => {
+                        document.querySelectorAll('.difficulty-option').forEach(opt => opt.classList.remove('selected'));
+                        e.currentTarget.classList.add('selected');
+                        this.selectedDifficulty = e.currentTarget.dataset.difficulty;
+                    });
+                });
+                
+                // Generate games button
+                document.getElementById('generateBtn').addEventListener('click', () => {
+                    this.generateGames();
+                });
+                
+                // Play again button
+                document.getElementById('playAgainBtn').addEventListener('click', () => {
+                    this.resetGame();
+                });
+                
+                // Enter key on topic input
+                document.getElementById('topicInput').addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') {
+                        this.generateGames();
+                    }
+                });
+            }
+            
+            async generateGames() {
+                const topic = document.getElementById('topicInput').value.trim();
+                
+                if (!topic) {
+                    this.showError('Please enter a topic to generate games.');
+                    return;
+                }
+                
+                this.setLoadingState(true);
+                this.hideError();
+                
+                try {
+                    const response = await fetch('http://127.0.0.1:8000/game', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            topic: topic,
+                            difficulty: this.selectedDifficulty
+                        })
+                    });
+                    
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    
+                    const data = await response.json();
+                    
+                    if (data.success && data.games && data.games.length > 0) {
+                        this.games = data.games;
+                        this.gameStates = new Array(this.games.length).fill(null).map(() => ({
+                            answered: false,
+                            selectedAnswer: null,
+                            isCorrect: null
+                        }));
+                        this.displayGames();
+                    } else {
+                        throw new Error('No games received from server');
+                    }
+                    
+                } catch (error) {
+                    console.error('Error generating games:', error);
+                    this.showError(`Failed to generate games: ${error.message}. Please try again.`);
+                } finally {
+                    this.setLoadingState(false);
+                }
+            }
+            
+            displayGames() {
+                const gamesSection = document.getElementById('gamesSection');
+                const gamesList = document.getElementById('gamesList');
+                
+                gamesList.innerHTML = '';
+                
+                this.games.forEach((game, index) => {
+                    const gameCard = this.createGameCard(game, index);
+                    gamesList.appendChild(gameCard);
+                });
+                
+                gamesSection.classList.add('visible');
+                document.getElementById('gameSetup').style.display = 'none';
+            }
+            
+            createGameCard(game, index) {
+                const gameCard = document.createElement('div');
+                gameCard.className = 'game-card';
+                gameCard.innerHTML = `
+                    <div class="game-header">
+                        <div class="game-number">Game ${index + 1}</div>
+                        <div class="game-status status-pending" id="status-${index}">Choose the lie</div>
+                    </div>
+                    
+                    <ul class="statements-list" id="statements-${index}">
+                        ${game.statements.map((statement, statementIndex) => `
+                            <li class="statement-item" data-game="${index}" data-statement="${statementIndex}">
+                                <div class="statement-text">${statement}</div>
+                                <div class="statement-indicator"></div>
+                            </li>
+                        `).join('')}
+                    </ul>
+                    
+                    <div class="game-actions">
+                        <button class="check-btn" id="check-${index}" disabled>Check Answer</button>
+                        <button class="next-btn" id="next-${index}">Next Game</button>
+                    </div>
+                    
+                    <div class="explanation" id="explanation-${index}">
+                        <div class="explanation-title">Explanation</div>
+                        <div class="explanation-text">${game.explanation}</div>
+                    </div>
+                `;
+                
+                // Add event listeners for statements
+                const statements = gameCard.querySelectorAll('.statement-item');
+                statements.forEach(statement => {
+                    statement.addEventListener('click', (e) => {
+                        this.selectStatement(e.currentTarget);
+                    });
+                });
+                
+                // Add event listener for check button
+                gameCard.querySelector(`#check-${index}`).addEventListener('click', () => {
+                    this.checkAnswer(index);
+                });
+                
+                // Add event listener for next button
+                gameCard.querySelector(`#next-${index}`).addEventListener('click', () => {
+                    this.nextGame(index);
+                });
+                
+                return gameCard;
+            }
+            
+            selectStatement(statementElement) {
+                const gameIndex = parseInt(statementElement.dataset.game);
+                const statementIndex = parseInt(statementElement.dataset.statement);
+                
+                // Don't allow selection if game is already answered
+                if (this.gameStates[gameIndex].answered) return;
+                
+                // Remove previous selection
+                const gameStatements = document.querySelectorAll(`.statement-item[data-game="${gameIndex}"]`);
+                gameStatements.forEach(stmt => stmt.classList.remove('selected'));
+                
+                // Add selection to clicked statement
+                statementElement.classList.add('selected');
+                
+                // Update game state
+                this.gameStates[gameIndex].selectedAnswer = statementIndex;
+                
+                // Enable check button
+                document.getElementById(`check-${gameIndex}`).disabled = false;
+            }
+            
+            checkAnswer(gameIndex) {
+                const game = this.games[gameIndex];
+                const gameState = this.gameStates[gameIndex];
+                const selectedAnswer = gameState.selectedAnswer;
+                
+                if (selectedAnswer === null) return;
+                
+                // Mark as answered
+                gameState.answered = true;
+                
+                // Check if correct
+                const isCorrect = selectedAnswer === game.lie_position;
+                gameState.isCorrect = isCorrect;
+                
+                if (isCorrect) {
+                    this.score++;
+                }
+                
+                // Update UI
+                this.updateGameResults(gameIndex, selectedAnswer, game.lie_position, isCorrect);
+                
+                // Show explanation
+                document.getElementById(`explanation-${gameIndex}`).classList.add('visible');
+                
+                // Hide check button, show next button (except for last game)
+                document.getElementById(`check-${index}`).style.display = 'none';
+                if (gameIndex < this.games.length - 1) {
+                    document.getElementById(`next-${index}`).classList.add('visible');
+                } else {
+                    // Show final score
+                    this.showFinalScore();
+                }
+            }
+            
+            updateGameResults(gameIndex, selectedAnswer, correctAnswer, isCorrect) {
+                const statements = document.querySelectorAll(`.statement-item[data-game="${gameIndex}"]`);
+                const status = document.getElementById(`status-${gameIndex}`);
+                
+                statements.forEach((statement, index) => {
+                    statement.classList.add('disabled');
+                    
+                    if (index === selectedAnswer) {
+                        if (isCorrect) {
+                            statement.classList.add('correct');
+                            statement.querySelector('.statement-indicator').textContent = '✅';
+                        } else {
+                            statement.classList.add('incorrect');
+                            statement.querySelector('.statement-indicator').textContent = '❌';
+                        }
+                    }
+                    
+                    if (index === correctAnswer) {
+                        statement.classList.add('lie-revealed');
+                        if (index !== selectedAnswer) {
+                            statement.querySelector('.statement-indicator').textContent = '🎯';
+                        }
+                    }
+                });
+                
+                // Update status
+                if (isCorrect) {
+                    status.textContent = 'Correct!';
+                    status.className = 'game-status status-correct';
+                } else {
+                    status.textContent = 'Incorrect';
+                    status.className = 'game-status status-incorrect';
+                }
+            }
+            
+            nextGame(currentIndex) {
+                const nextIndex = currentIndex + 1;
+                if (nextIndex < this.games.length) {
+                    // Scroll to next game
+                    const nextGameCard = document.querySelector(`.statement-item[data-game="${nextIndex}"]`).closest('.game-card');
+                    nextGameCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    
+                    // Hide current next button
+                    document.getElementById(`next-${currentIndex}`).classList.remove('visible');
+                }
+            }
+            
+            showFinalScore() {
+                const scoreSummary = document.getElementById('scoreSummary');
+                const scoreText = document.getElementById('scoreText');
+                
+                const percentage = Math.round((this.score / this.games.length) * 100);
+                let message = '';
+                
+                if (percentage === 100) {
+                    message = `Perfect score! You got all ${this.score} out of ${this.games.length} correct! 🌟`;
+                } else if (percentage >= 80) {
+                    message = `Excellent work! You got ${this.score} out of ${this.games.length} correct (${percentage}%)! 🎉`;
+                } else if (percentage >= 60) {
+                    message = `Good job! You got ${this.score} out of ${this.games.length} correct (${percentage}%). Keep practicing! 👍`;
+                } else {
+                    message = `You got ${this.score} out of ${this.games.length} correct (${percentage}%). Don't worry, practice makes perfect! 💪`;
+                }
+                
+                scoreText.textContent = message;
+                scoreSummary.style.display = 'block';
+                
+                // Scroll to score summary
+                setTimeout(() => {
+                    scoreSummary.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }, 500);
+            }
+            
+            resetGame() {
+                // Reset all states
+                this.games = [];
+                this.currentGameIndex = 0;
+                this.score = 0;
+                this.gameStates = [];
+                
+                // Reset UI
+                document.getElementById('gamesSection').classList.remove('visible');
+                document.getElementById('gameSetup').style.display = 'block';
+                document.getElementById('scoreSummary').style.display = 'none';
+                document.getElementById('topicInput').value = '';
+                this.hideError();
+                
+                // Scroll to top
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+            
+            setLoadingState(isLoading) {
+                const generateBtn = document.getElementById('generateBtn');
+                const btnText = document.getElementById('btnText');
+                const loadingSpinner = document.getElementById('loadingSpinner');
+                
+                if (isLoading) {
+                    generateBtn.disabled = true;
+                    btnText.style.display = 'none';
+                    loadingSpinner.style.display = 'block';
+                } else {
+                    generateBtn.disabled = false;
+                    btnText.style.display = 'block';
+                    loadingSpinner.style.display = 'none';
+                }
+            }
+            
+            showError(message) {
+                const errorMessage = document.getElementById('errorMessage');
+                errorMessage.textContent = message;
+                errorMessage.classList.add('visible');
+            }
+            
+            hideError() {
+                const errorMessage = document.getElementById('errorMessage');
+                errorMessage.classList.remove('visible');
+            }
+        }
+        
     document.addEventListener('DOMContentLoaded', () => {
         const authContainer = document.getElementById('auth-container');
         const appContainer = document.getElementById('app-container');
@@ -1039,7 +1873,7 @@
         // --- THEME & INITIALIZATION ---
         const updateAuthThemeIcon = (theme) => {
              const icon = authThemeSwitcher.querySelector('i');
-             icon.className = theme === 'dark' ? 'fas fa-moon' : 'fas fa-sun';
+               icon.className = theme === 'dark' ? 'fas fa-moon' : 'fas fa-sun';
         };
         authThemeSwitcher.addEventListener('click', () => {
             const newTheme = body.dataset.theme === 'dark' ? 'light' : 'dark';
@@ -1194,7 +2028,7 @@
                 school: document.getElementById('signup-school').value,
                 email: document.getElementById('signup-email').value,
                 password: password,
-                 // preferred_name is captured but not sent, as it's not in the SignupRequest schema
+                // preferred_name is captured but not sent, as it's not in the SignupRequest schema
                 preferred_name: document.getElementById('signup-preferredname').value || firstName 
             };
             
@@ -1286,6 +2120,9 @@
 
         // --- MAIN APP INITIALIZATION & EVENT LISTENERS ---
         function initializeAppUI(user) {
+            // Initialize the game logic once the app UI is rendered
+            new TwoTruthsOneLieGame();
+
             // Use preferred name from local storage if available, otherwise name, otherwise fallback.
             const preferredName = user.preferred_name || user.name.split(' ')[0];
             document.getElementById('welcome-message').textContent = `Welcome back, ${preferredName || 'Teacher'}!`;
@@ -1486,21 +2323,6 @@
                 }
             });
 
-            document.getElementById('audio-form')?.addEventListener('submit', async (e) => {
-                e.preventDefault();
-                const responseArea = document.getElementById('audio-response');
-                const payload = {
-                    transcribed_text: document.getElementById('audio-prompt').value
-                };
-                try {
-                    responseArea.textContent = 'Getting answer...';
-                    const data = await handleApiRequest(e.submitter, '/audio-questioning', payload);
-                    responseArea.textContent = data.response;
-                } catch (error) {
-                    responseArea.textContent = `Error: ${error.message}`;
-                }
-            });
-
             // --- REWRITTEN Audio Questioning Logic ---
             const recordBtn = document.getElementById('audio-record-btn');
             if (recordBtn) {
@@ -1606,6 +2428,3 @@
     </script>
 </body>
 </html>
-
-
-
