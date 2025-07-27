@@ -1479,7 +1479,7 @@
                 };
                 try {
                     responseArea.textContent = 'Generating lesson plan...';
-                    const data = await handleApiRequest(e.submitter, 'http://127.0.0.1:8000/plan-week', payload);
+                    const data = await handleApiRequest(e.submitter, '/plan-week', payload);
                     responseArea.textContent = data.response;
                 } catch (error) {
                     responseArea.textContent = `Error: ${error.message}`;
